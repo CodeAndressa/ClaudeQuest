@@ -28,6 +28,36 @@
   --radius: 0.75rem;
 }
 
+/*
+ * Paleta clara (Light Mode opcional — UX.md.md: "Dark Mode obrigatório; Light
+ * Mode opcional"). Mantém a mesma identidade visual (primário laranja) com
+ * contraste adequado (WCAG AA) sobre fundos claros. Aplicada via classe
+ * `.light` no elemento <html> (ver src/store/theme-store.ts).
+ */
+.light {
+  --background: #f7f7f8;
+  --foreground: #16161a;
+  --card: #ffffff;
+  --card-foreground: #16161a;
+  --popover: #ffffff;
+  --popover-foreground: #16161a;
+  --primary: #d9690f;
+  --primary-foreground: #ffffff;
+  --secondary: #ececef;
+  --secondary-foreground: #3a3a40;
+  --muted: #ececef;
+  --muted-foreground: #63636b;
+  --accent: #ffb347;
+  --accent-foreground: #16161a;
+  --destructive: #dc2626;
+  --border: #e2e2e6;
+  --input: #d7d7dc;
+  --ring: #d9690f;
+  --success: #16a34a;
+  --warning: #d97706;
+  --info: #2563eb;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

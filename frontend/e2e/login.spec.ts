@@ -19,6 +19,6 @@ test.describe("Login", () => {
     await page.getByRole("button", { name: /entrar/i }).click()
 
     await expect(page).toHaveURL("/")
-    await expect(page.getByRole("heading", { name: /status da plataforma/i })).toBeVisible()
+    await expect(page.getByRole("heading", { name: /seu painel/i })).toBeVisible()
   })
 })
