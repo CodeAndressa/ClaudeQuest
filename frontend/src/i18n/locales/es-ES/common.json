@@ -1,0 +1,9 @@
+{
+  "app.name": "ClaudeQuest",
+  "health.title": "Estado de la plataforma",
+  "health.loading": "Comprobando la conexión con el servidor...",
+  "health.error": "No fue posible conectar con el servidor. Inténtalo de nuevo en unos instantes.",
+  "health.retry": "Reintentar",
+  "health.success": "¡Todo listo! El backend está en línea.",
+  "health.environment": "Entorno: {{environment}}"
+}
