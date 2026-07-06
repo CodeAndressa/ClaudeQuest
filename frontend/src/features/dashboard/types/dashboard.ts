@@ -15,6 +15,7 @@ export interface DashboardRanking {
 }
 
 export interface DashboardNextLesson {
+  track_id: string
   track_title: string
   lesson_title: string
   lesson_id: string

@@ -1,9 +1,11 @@
 import uuid
 
 import httpx
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import hash_password
+from app.domains.gamification.model import XpLedger
 from app.domains.learning.model import (
     Alternative,
     Lesson,
@@ -26,7 +28,7 @@ async def _create_user_and_login(
     password = "senha-correta"
     user = User(
         organization_id=organization.id,
-        name="Usuária de Teste",
+        name="UsuÃ¡ria de Teste",
         email=email,
         password_hash=hash_password(password),
         role=UserRole.STUDENT,
@@ -53,15 +55,15 @@ async def _create_track_with_hierarchy(session: AsyncSession) -> Track:
     await session.flush()
 
     module = Module(
-        track_id=track.id, title="Interface", description="Conheça a interface.", order=1
+        track_id=track.id, title="Interface", description="ConheÃ§a a interface.", order=1
     )
     session.add(module)
     await session.flush()
 
     level = Level(
         module_id=module.id,
-        title="Nível 1",
-        description="Introdução",
+        title="NÃ­vel 1",
+        description="IntroduÃ§Ã£o",
         level_number=1,
     )
     session.add(level)
@@ -69,10 +71,11 @@ async def _create_track_with_hierarchy(session: AsyncSession) -> Track:
 
     lesson = Lesson(
         level_id=level.id,
-        title="Missão 1",
-        description="Primeira missão",
-        content="Conteúdo da missão",
+        title="MissÃ£o 1",
+        description="Primeira missÃ£o",
+        content="ConteÃºdo da missÃ£o",
         order=1,
+        xp=5,
     )
     session.add(lesson)
     await session.flush()
@@ -157,3 +160,52 @@ async def test_get_track_detail_returns_404_when_not_found(
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "track_not_found"
+
+
+async def test_complete_lesson_awards_xp_once(
+    client_with_db: httpx.AsyncClient, db_session: AsyncSession
+) -> None:
+    track = await _create_track_with_hierarchy(db_session)
+    lesson_id = await db_session.scalar(
+        select(Lesson.id)
+        .join(Level, Level.id == Lesson.level_id)
+        .join(Module, Module.id == Level.module_id)
+        .where(Module.track_id == track.id)
+    )
+    assert lesson_id is not None
+    token = await _create_user_and_login(
+        client_with_db, db_session, email="learner-complete@claudequest.dev"
+    )
+    headers = {"Authorization": f"Bearer {token}"}
+
+    first = await client_with_db.post(
+        f"/api/v1/learning/lessons/{lesson_id}/complete", headers=headers
+    )
+    second = await client_with_db.post(
+        f"/api/v1/learning/lessons/{lesson_id}/complete", headers=headers
+    )
+
+    assert first.status_code == 200
+    assert first.json()["data"]["already_completed"] is False
+    assert first.json()["data"]["xp_granted"] == 5
+    assert second.status_code == 200
+    assert second.json()["data"]["already_completed"] is True
+    assert second.json()["data"]["xp_granted"] == 0
+    xp_entries = await db_session.scalar(select(func.count()).select_from(XpLedger))
+    assert xp_entries == 1
+
+
+async def test_complete_lesson_returns_404_when_missing(
+    client_with_db: httpx.AsyncClient, db_session: AsyncSession
+) -> None:
+    token = await _create_user_and_login(
+        client_with_db, db_session, email="learner-complete-missing@claudequest.dev"
+    )
+
+    response = await client_with_db.post(
+        f"/api/v1/learning/lessons/{uuid.uuid4()}/complete",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "lesson_not_found"

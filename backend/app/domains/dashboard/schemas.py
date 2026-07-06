@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 
 class DashboardXp(BaseModel):
-    """XP e nível atuais do usuário (mesma regra de `app.domains.gamification`)."""
+    """XP e nÃ­vel atuais do usuÃ¡rio (mesma regra de `app.domains.gamification`)."""
 
     total: int
     level: int
@@ -20,25 +20,26 @@ class DashboardStreak(BaseModel):
 
 
 class DashboardRanking(BaseModel):
-    """Posição do usuário no ranking global de XP."""
+    """PosiÃ§Ã£o do usuÃ¡rio no ranking global de XP."""
 
     position: int | None
     total_users: int
 
 
 class DashboardNextLesson(BaseModel):
-    """Próxima missão sugerida ao usuário."""
+    """PrÃ³xima missÃ£o sugerida ao usuÃ¡rio."""
 
+    track_id: uuid.UUID
     track_title: str
     lesson_title: str
     lesson_id: uuid.UUID
 
 
 class DashboardResponse(BaseModel):
-    """Resumo agregado do Módulo Dashboard (GET /api/v1/dashboard/me).
+    """Resumo agregado do MÃ³dulo Dashboard (GET /api/v1/dashboard/me).
 
-    `badges` e `certificates` são sempre listas vazias nesta primeira fatia —
-    as tabelas correspondentes ainda não existem (ficam para os épicos futuros
+    `badges` e `certificates` sÃ£o sempre listas vazias nesta primeira fatia â€”
+    as tabelas correspondentes ainda nÃ£o existem (ficam para os Ã©picos futuros
     GAME-002/003 e CERT-001, conforme a Functional Specification).
     """
 

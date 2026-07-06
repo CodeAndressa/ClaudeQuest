@@ -5,7 +5,7 @@ import pytest
 
 from app.domains.dashboard.service import DashboardService
 from app.domains.gamification.xp_rules import xp_required_for_level
-from app.domains.learning.model import Lesson
+from app.domains.learning.model import Lesson, Track
 
 
 class _FakeDashboardRepository:
@@ -14,7 +14,7 @@ class _FakeDashboardRepository:
         self.active_dates: list[date] = []
         self.ranking_position: int | None = 1
         self.total_users = 1
-        self.next_lesson_result: tuple[str, Lesson] | None = None
+        self.next_lesson_result: tuple[Track, Lesson] | None = None
 
     async def get_total_xp(self, user_id: UUID) -> int:
         return self.total_xp
@@ -28,7 +28,7 @@ class _FakeDashboardRepository:
     async def get_total_users(self) -> int:
         return self.total_users
 
-    async def get_first_lesson_of_first_active_track(self) -> tuple[str, Lesson] | None:
+    async def get_next_incomplete_lesson(self, user_id: UUID) -> tuple[Track, Lesson] | None:
         return self.next_lesson_result
 
 
@@ -147,18 +147,27 @@ class TestGetSummaryNextLesson:
         lesson = Lesson(
             id=uuid4(),
             level_id=uuid4(),
-            title="Primeira missão",
-            description="Descrição",
-            content="Conteúdo",
+            title="Primeira missÃ£o",
+            description="DescriÃ§Ã£o",
+            content="ConteÃºdo",
             order=1,
         )
-        fake_repository.next_lesson_result = ("Claude Chat", lesson)
+        track = Track(
+            id=uuid4(),
+            title="Claude Chat",
+            description="Descricao",
+            difficulty="beginner",
+            estimated_hours=1,
+            order=1,
+        )
+        fake_repository.next_lesson_result = (track, lesson)
 
         summary = await service.get_summary(uuid4())
 
         assert summary.next_lesson is not None
+        assert summary.next_lesson.track_id == track.id
         assert summary.next_lesson.track_title == "Claude Chat"
-        assert summary.next_lesson.lesson_title == "Primeira missão"
+        assert summary.next_lesson.lesson_title == "Primeira missÃ£o"
         assert summary.next_lesson.lesson_id == lesson.id
 
 

@@ -1,4 +1,4 @@
-import uuid
+﻿import uuid
 
 from pydantic import BaseModel, ConfigDict
 
@@ -81,7 +81,7 @@ class ModuleDetail(BaseModel):
 
 
 class TrackDetail(BaseModel):
-    """Detalhe completo da trilha, com módulos, níveis, missões, questões e alternativas."""
+    """Detalhe completo da trilha, com mÃ³dulos, nÃ­veis, missÃµes, questÃµes e alternativas."""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -95,3 +95,15 @@ class TrackDetail(BaseModel):
     order: int
     is_active: bool
     modules: list[ModuleDetail]
+
+
+class CompleteLessonResponse(BaseModel):
+    """Resultado da conclusao de uma missao pelo aluno."""
+
+    lesson_id: uuid.UUID
+    completed: bool
+    already_completed: bool
+    xp_granted: int
+    total_xp: int
+    level: int
+    xp_to_next_level: int

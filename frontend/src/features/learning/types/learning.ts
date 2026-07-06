@@ -1,4 +1,4 @@
-export interface TrackSummary {
+﻿export interface TrackSummary {
   id: string
   title: string
   description: string
@@ -72,4 +72,14 @@ export interface TrackDetail {
   order: number
   is_active: boolean
   modules: ModuleDetail[]
+}
+
+export interface CompleteLessonResponse {
+  lesson_id: string
+  completed: boolean
+  already_completed: boolean
+  xp_granted: number
+  total_xp: number
+  level: number
+  xp_to_next_level: number
 }

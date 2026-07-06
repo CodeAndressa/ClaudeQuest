@@ -118,6 +118,9 @@
       "upload": "Upload",
       "checklist": "Checklist",
       "free_answer": "Resposta livre"
-    }
+    },
+    "completed": "Missão concluída. Você ganhou {{xp}} XP.",
+    "alreadyCompleted": "Missão já concluída. Seu XP não foi duplicado.",
+    "completeError": "Não foi possível concluir esta missão agora."
   }
 }

@@ -3,15 +3,39 @@ import uuid
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domains.learning.model import Level, Module, Track
-from app.domains.learning.repository import TrackRepository
+from app.domains.gamification.repository import XpLedgerRepository
+from app.domains.learning.model import Lesson, Level, Module, Track
+from app.domains.learning.repository import LessonProgressRepository, LessonRepository, TrackRepository
 from app.domains.learning.service import LearningService
+from app.domains.organizations.model import Organization
+from app.domains.users.model import User, UserRole
 from app.shared.errors import AppError
 
 
 def _build_service(session: AsyncSession) -> LearningService:
-    return LearningService(TrackRepository(session))
+    return LearningService(
+        TrackRepository(session),
+        LessonRepository(session),
+        LessonProgressRepository(session),
+        XpLedgerRepository(session),
+    )
 
+
+
+async def _create_user(session: AsyncSession, *, email: str = "learner-service@claudequest.dev") -> User:
+    organization = Organization(name="Org Learning", slug=f"org-{email}", plan="internal")
+    session.add(organization)
+    await session.flush()
+    user = User(
+        organization_id=organization.id,
+        name="Learner",
+        email=email,
+        password_hash="hash-for-service-test",
+        role=UserRole.STUDENT,
+    )
+    session.add(user)
+    await session.flush()
+    return user
 
 async def _create_track(session: AsyncSession, *, is_active: bool = True) -> Track:
     track = Track(
@@ -38,14 +62,14 @@ async def test_list_tracks_returns_active_tracks(db_session: AsyncSession) -> No
 
 async def test_get_track_detail_returns_the_track(db_session: AsyncSession) -> None:
     track = await _create_track(db_session)
-    module = Module(track_id=track.id, title="Introdução", description="Básico", order=1)
+    module = Module(track_id=track.id, title="IntroduÃ§Ã£o", description="BÃ¡sico", order=1)
     db_session.add(module)
     await db_session.flush()
     db_session.add(
         Level(
             module_id=module.id,
-            title="Nível 1",
-            description="Introdução",
+            title="NÃ­vel 1",
+            description="IntroduÃ§Ã£o",
             level_number=1,
         )
     )
@@ -76,3 +100,47 @@ async def test_get_track_detail_raises_when_inactive(db_session: AsyncSession) -
         await service.get_track_detail(track.id)
 
     assert exc_info.value.code == "track_not_found"
+
+
+async def test_complete_lesson_awards_xp_once(db_session: AsyncSession) -> None:
+    track = await _create_track(db_session)
+    module = Module(track_id=track.id, title="Interface", description="Basico", order=1)
+    db_session.add(module)
+    await db_session.flush()
+    level = Level(module_id=module.id, title="Nivel 1", description="Intro", level_number=1)
+    db_session.add(level)
+    await db_session.flush()
+    lesson = Lesson(
+        level_id=level.id,
+        title="Missao 1",
+        description="Primeira missao",
+        content="Conteudo",
+        order=1,
+        xp=35,
+    )
+    db_session.add(lesson)
+    await db_session.flush()
+    service = _build_service(db_session)
+    user = await _create_user(db_session)
+
+    first = await service.complete_lesson(user_id=user.id, lesson_id=lesson.id)
+    second = await service.complete_lesson(user_id=user.id, lesson_id=lesson.id)
+
+    assert first.completed is True
+    assert first.already_completed is False
+    assert first.xp_granted == 35
+    assert first.total_xp == 35
+    assert second.completed is True
+    assert second.already_completed is True
+    assert second.xp_granted == 0
+    assert second.total_xp == 35
+
+
+async def test_complete_lesson_raises_when_not_found(db_session: AsyncSession) -> None:
+    service = _build_service(db_session)
+
+    with pytest.raises(AppError) as exc_info:
+        await service.complete_lesson(user_id=uuid.uuid4(), lesson_id=uuid.uuid4())
+
+    assert exc_info.value.code == "lesson_not_found"
+    assert exc_info.value.status_code == 404

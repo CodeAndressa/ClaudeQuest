@@ -3,22 +3,21 @@ from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from app.domains.gamification.model import XpLedger
-from app.domains.learning.model import Lesson, Level, Module, Track
+from app.domains.learning.model import Lesson, Level, Module, Track, UserLessonProgress
 from app.domains.users.model import User
 
 
 class DashboardRepository:
-    """Acesso a dados agregados de múltiplos domínios para o Módulo Dashboard.
+    """Acesso a dados agregados de mÃºltiplos domÃ­nios para o MÃ³dulo Dashboard.
 
-    Fica em seu próprio domínio (e não dentro de `gamification`/`learning`) porque
-    a agregação que ele faz — XP + streak + ranking + próxima missão — não é uma
-    responsabilidade de nenhum domínio individual, é a composição de vários. Cada
-    consulta aqui só lê tabelas de outros domínios (nunca escreve nelas), o que
-    respeita a regra de "baixo acoplamento" do Módulo Dashboard na Functional
-    Specification sem duplicar a lógica de cálculo de XP/nível, que continua
+    Fica em seu prÃ³prio domÃ­nio (e nÃ£o dentro de `gamification`/`learning`) porque
+    a agregaÃ§Ã£o que ele faz â€” XP + streak + ranking + prÃ³xima missÃ£o â€” nÃ£o Ã© uma
+    responsabilidade de nenhum domÃ­nio individual, Ã© a composiÃ§Ã£o de vÃ¡rios. Cada
+    consulta aqui sÃ³ lÃª tabelas de outros domÃ­nios (nunca escreve nelas), o que
+    respeita a regra de "baixo acoplamento" do MÃ³dulo Dashboard na Functional
+    Specification sem duplicar a lÃ³gica de cÃ¡lculo de XP/nÃ­vel, que continua
     vivendo em `app.domains.gamification`.
     """
 
@@ -33,11 +32,11 @@ class DashboardRepository:
         return int(result.scalar_one())
 
     async def get_distinct_xp_dates_desc(self, user_id: UUID) -> list[date]:
-        """Datas (UTC) distintas em que o usuário recebeu XP, mais recentes primeiro.
+        """Datas (UTC) distintas em que o usuÃ¡rio recebeu XP, mais recentes primeiro.
 
-        Usada para calcular o streak em memória no Service — a contagem de dias
-        consecutivos envolve lógica de negócio (parar no primeiro "buraco"), que
-        não pertence ao Repository.
+        Usada para calcular o streak em memÃ³ria no Service â€” a contagem de dias
+        consecutivos envolve lÃ³gica de negÃ³cio (parar no primeiro "buraco"), que
+        nÃ£o pertence ao Repository.
         """
 
         xp_date = func.date(XpLedger.created_at)
@@ -51,11 +50,11 @@ class DashboardRepository:
         return list(result.scalars().all())
 
     async def get_ranking_position(self, user_id: UUID) -> int | None:
-        """Posição (1-based) do usuário no ranking global por XP total (desc).
+        """PosiÃ§Ã£o (1-based) do usuÃ¡rio no ranking global por XP total (desc).
 
-        Empates são desempatados por `id` (ordem estável), conforme a regra da
-        tarefa. Retorna `None` se o usuário não existir mais (ex.: deletado entre
-        a autenticação e a consulta) — caso defensivo, não esperado em uso normal.
+        Empates sÃ£o desempatados por `id` (ordem estÃ¡vel), conforme a regra da
+        tarefa. Retorna `None` se o usuÃ¡rio nÃ£o existir mais (ex.: deletado entre
+        a autenticaÃ§Ã£o e a consulta) â€” caso defensivo, nÃ£o esperado em uso normal.
         """
 
         total_xp_subquery = (
@@ -84,32 +83,38 @@ class DashboardRepository:
         result = await self._session.execute(statement)
         return int(result.scalar_one())
 
-    async def get_first_lesson_of_first_active_track(self) -> tuple[str, Lesson] | None:
-        """Primeira missão (por `order`) da primeira trilha ativa (por `order`).
+    async def get_next_incomplete_lesson(self, user_id: UUID) -> tuple[Track, Lesson] | None:
+        """Primeira missao ativa ainda nao concluida pelo usuario.
 
-        Aproximação documentada na tarefa: ainda não existe uma tabela de
-        progresso do aluno, então "próxima missão" é sempre a primeira missão do
-        conteúdo, não a próxima incompleta. Retorna `None` quando não há nenhuma
-        trilha ativa com conteúdo completo (trilha -> módulo -> nível -> missão).
+        A ordem respeita catalogo -> modulo -> nivel -> missao. Quando todas as
+        missoes publicadas estiverem concluidas, retorna `None`.
         """
 
         statement = (
-            select(Track)
-            .where(Track.is_active.is_(True), Track.deleted_at.is_(None))
-            .order_by(Track.order)
-            .options(
-                selectinload(Track.modules.and_(Module.deleted_at.is_(None)))
-                .selectinload(Module.levels.and_(Level.deleted_at.is_(None)))
-                .selectinload(Level.lessons.and_(Lesson.deleted_at.is_(None)))
+            select(Track, Lesson)
+            .join(Module, Module.track_id == Track.id)
+            .join(Level, Level.module_id == Module.id)
+            .join(Lesson, Lesson.level_id == Level.id)
+            .outerjoin(
+                UserLessonProgress,
+                (UserLessonProgress.lesson_id == Lesson.id)
+                & (UserLessonProgress.user_id == user_id)
+                & (UserLessonProgress.deleted_at.is_(None)),
             )
+            .where(
+                Track.is_active.is_(True),
+                Track.deleted_at.is_(None),
+                Module.is_active.is_(True),
+                Module.deleted_at.is_(None),
+                Level.deleted_at.is_(None),
+                Lesson.deleted_at.is_(None),
+                UserLessonProgress.id.is_(None),
+            )
+            .order_by(Track.order, Module.order, Level.level_number, Lesson.order)
+            .limit(1)
         )
         result = await self._session.execute(statement)
-        tracks = list(result.unique().scalars().all())
-
-        for track in tracks:
-            for module in sorted(track.modules, key=lambda m: m.order):
-                for level in sorted(module.levels, key=lambda lv: lv.level_number):
-                    lessons = sorted(level.lessons, key=lambda ls: ls.order)
-                    if lessons:
-                        return track.title, lessons[0]
-        return None
+        row = result.first()
+        if row is None:
+            return None
+        return row.Track, row.Lesson

@@ -1,13 +1,13 @@
-from datetime import UTC, datetime, timedelta
+﻿from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from sqlalchemy import update
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import hash_password
 from app.domains.dashboard.repository import DashboardRepository
 from app.domains.gamification.model import XpLedger
-from app.domains.learning.model import Lesson, Level, Module, Track
+from app.domains.learning.model import Lesson, Level, Module, Track, UserLessonProgress
 from app.domains.organizations.model import Organization
 from app.domains.users.model import User
 
@@ -19,7 +19,7 @@ async def _create_user(session: AsyncSession, *, email: str) -> User:
 
     user = User(
         organization_id=organization.id,
-        name="Usuária de Teste",
+        name="UsuÃ¡ria de Teste",
         email=email,
         password_hash=hash_password("senha-forte"),
     )
@@ -50,7 +50,7 @@ async def _add_xp(
 async def _create_track_with_hierarchy(session: AsyncSession, *, order: int, title: str) -> Track:
     track = Track(
         title=title,
-        description="Descrição",
+        description="DescriÃ§Ã£o",
         difficulty="beginner",
         estimated_hours=1,
         order=order,
@@ -58,19 +58,19 @@ async def _create_track_with_hierarchy(session: AsyncSession, *, order: int, tit
     session.add(track)
     await session.flush()
 
-    module = Module(track_id=track.id, title="Módulo", description="Descrição", order=1)
+    module = Module(track_id=track.id, title="MÃ³dulo", description="DescriÃ§Ã£o", order=1)
     session.add(module)
     await session.flush()
 
-    level = Level(module_id=module.id, title="Nível 1", description="Descrição", level_number=1)
+    level = Level(module_id=module.id, title="NÃ­vel 1", description="DescriÃ§Ã£o", level_number=1)
     session.add(level)
     await session.flush()
 
     lesson = Lesson(
         level_id=level.id,
-        title=f"Missão de {title}",
-        description="Descrição",
-        content="Conteúdo",
+        title=f"MissÃ£o de {title}",
+        description="DescriÃ§Ã£o",
+        content="ConteÃºdo",
         order=1,
     )
     session.add(lesson)
@@ -191,31 +191,35 @@ class TestRanking:
         assert position is not None
 
 
-class TestGetFirstLessonOfFirstActiveTrack:
+class TestGetNextIncompleteLesson:
     async def test_returns_none_when_no_active_track_exists(
         self, db_session: AsyncSession
     ) -> None:
+        user = await _create_user(db_session, email="dash-next-none@claudequest.dev")
         repository = DashboardRepository(db_session)
 
-        result = await repository.get_first_lesson_of_first_active_track()
+        result = await repository.get_next_incomplete_lesson(user.id)
 
         assert result is None
 
     async def test_returns_first_lesson_of_first_track_by_order(
         self, db_session: AsyncSession
     ) -> None:
+        user = await _create_user(db_session, email="dash-next-order@claudequest.dev")
         repository = DashboardRepository(db_session)
         await _create_track_with_hierarchy(db_session, order=2, title="Trilha B")
         track_a = await _create_track_with_hierarchy(db_session, order=1, title="Trilha A")
 
-        result = await repository.get_first_lesson_of_first_active_track()
+        result = await repository.get_next_incomplete_lesson(user.id)
 
         assert result is not None
-        track_title, lesson = result
-        assert track_title == track_a.title
-        assert lesson.title == "Missão de Trilha A"
+        track, lesson = result
+        assert track.id == track_a.id
+        assert track.title == track_a.title
+        assert lesson.title == "MissÃ£o de Trilha A"
 
     async def test_ignores_inactive_tracks(self, db_session: AsyncSession) -> None:
+        user = await _create_user(db_session, email="dash-next-active@claudequest.dev")
         repository = DashboardRepository(db_session)
         inactive_track = await _create_track_with_hierarchy(
             db_session, order=1, title="Trilha Inativa"
@@ -226,8 +230,45 @@ class TestGetFirstLessonOfFirstActiveTrack:
             db_session, order=2, title="Trilha Ativa"
         )
 
-        result = await repository.get_first_lesson_of_first_active_track()
+        result = await repository.get_next_incomplete_lesson(user.id)
 
         assert result is not None
-        track_title, _lesson = result
-        assert track_title == active_track.title
+        track, _lesson = result
+        assert track.title == active_track.title
+
+    async def test_skips_completed_lessons(self, db_session: AsyncSession) -> None:
+        user = await _create_user(db_session, email="dash-next-completed@claudequest.dev")
+        track = await _create_track_with_hierarchy(db_session, order=1, title="Trilha Progresso")
+        level_id = await db_session.scalar(
+            select(Level.id).join(Module, Module.id == Level.module_id).where(Module.track_id == track.id)
+        )
+        assert level_id is not None
+        first_lesson = await db_session.scalar(
+            select(Lesson).where(Lesson.level_id == level_id, Lesson.order == 1)
+        )
+        assert first_lesson is not None
+        second_lesson = Lesson(
+            level_id=level_id,
+            title="Segunda missao",
+            description="Descricao",
+            content="Conteudo",
+            order=2,
+        )
+        db_session.add(second_lesson)
+        await db_session.flush()
+        db_session.add(
+            UserLessonProgress(
+                user_id=user.id,
+                lesson_id=first_lesson.id,
+                completed_at=datetime.now(UTC),
+                xp_awarded=first_lesson.xp,
+            )
+        )
+        await db_session.flush()
+        repository = DashboardRepository(db_session)
+
+        result = await repository.get_next_incomplete_lesson(user.id)
+
+        assert result is not None
+        _track, lesson = result
+        assert lesson.id == second_lesson.id

@@ -1,19 +1,47 @@
 import enum
 import uuid
 
-from sqlalchemy import Boolean, Enum, ForeignKey, Integer, Text, UniqueConstraint
+from datetime import datetime
+
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import AuditedModel
 
 
-class QuestionType(enum.StrEnum):
-    """Tipos de questão previstos em 05 - Database/Database Specification.md.md.
+class UserLessonProgress(AuditedModel):
+    """Progresso de conclusao de uma missao por usuario.
 
-    Apenas MULTIPLE_CHOICE é utilizado nesta primeira entrega (LEARN-001 a
-    LEARN-006, conteúdo apenas de leitura) — os demais tipos ficam registrados
-    aqui para não exigir migração futura quando forem implementados.
+    Cada par (usuario, missao) so pode existir uma vez. A linha nasce quando a
+    missao e concluida pela primeira vez e guarda quanto XP foi concedido naquele
+    momento, evitando duplicidade em retries ou cliques repetidos.
+    """
+
+    __tablename__ = "user_lesson_progress"
+    __table_args__ = (
+        UniqueConstraint("user_id", "lesson_id", name="uq_user_lesson_progress_user_lesson"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    lesson_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("lessons.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    completed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    xp_awarded: Mapped[int] = mapped_column(Integer(), nullable=False, default=0)
+
+
+class QuestionType(enum.StrEnum):
+    """Tipos de questÃ£o previstos em 05 - Database/Database Specification.md.md.
+
+    Apenas MULTIPLE_CHOICE Ã© utilizado nesta primeira entrega (LEARN-001 a
+    LEARN-006, conteÃºdo apenas de leitura) â€” os demais tipos ficam registrados
+    aqui para nÃ£o exigir migraÃ§Ã£o futura quando forem implementados.
     """
 
     MULTIPLE_CHOICE = "multiple_choice"
@@ -25,7 +53,7 @@ class QuestionType(enum.StrEnum):
 
 
 class LessonType(enum.StrEnum):
-    """Tipos de missão (08 - Gamification/Learning Engine.md.md, "Tipos de Missão")."""
+    """Tipos de missÃ£o (08 - Gamification/Learning Engine.md.md, "Tipos de MissÃ£o")."""
 
     READING = "reading"
     QUIZ = "quiz"
@@ -37,7 +65,7 @@ class LessonType(enum.StrEnum):
 
 
 class Track(AuditedModel):
-    """Trilha (05 - Database/Database Specification.md.md, seção "Tracks").
+    """Trilha (05 - Database/Database Specification.md.md, seÃ§Ã£o "Tracks").
 
     Exemplos: Claude Chat, Claude Cowork, Claude Code, Prompt Engineering, MCP.
     """
@@ -61,13 +89,13 @@ class Track(AuditedModel):
 
 
 class Module(AuditedModel):
-    """Módulo de uma trilha (Learning Content.md.md, "Estrutura dos Módulos").
+    """MÃ³dulo de uma trilha (Learning Content.md.md, "Estrutura dos MÃ³dulos").
 
-    Não existia como tabela própria no Database Specification original (que vai
-    direto de Track para Level) — adicionada por exigência explícita da tarefa
+    NÃ£o existia como tabela prÃ³pria no Database Specification original (que vai
+    direto de Track para Level) â€” adicionada por exigÃªncia explÃ­cita da tarefa
     LEARN-001..006, que define a hierarquia oficial como
-    Track -> Module -> Level -> Lesson -> Question -> Alternative. Cada módulo
-    ensina um único tema, nunca misturando assuntos.
+    Track -> Module -> Level -> Lesson -> Question -> Alternative. Cada mÃ³dulo
+    ensina um Ãºnico tema, nunca misturando assuntos.
     """
 
     __tablename__ = "modules"
@@ -90,10 +118,10 @@ class Module(AuditedModel):
 
 
 class Level(AuditedModel):
-    """Nível (05 - Database/Database Specification.md.md, seção "Levels").
+    """NÃ­vel (05 - Database/Database Specification.md.md, seÃ§Ã£o "Levels").
 
-    Tipos usuais (Learning Engine.md.md, "Níveis"): Básico, Intermediário,
-    Avançado, Especialista, Master — representados livremente em `title`.
+    Tipos usuais (Learning Engine.md.md, "NÃ­veis"): BÃ¡sico, IntermediÃ¡rio,
+    AvanÃ§ado, Especialista, Master â€” representados livremente em `title`.
     """
 
     __tablename__ = "levels"
@@ -121,10 +149,10 @@ class Level(AuditedModel):
 
 
 class Lesson(AuditedModel):
-    """Missão (05 - Database/Database Specification.md.md, seção "Lessons").
+    """MissÃ£o (05 - Database/Database Specification.md.md, seÃ§Ã£o "Lessons").
 
-    Regra de qualidade (Learning Engine.md.md, "Critérios de Qualidade"): toda
-    missão deve ensinar apenas um conceito principal e ser concluída em menos
+    Regra de qualidade (Learning Engine.md.md, "CritÃ©rios de Qualidade"): toda
+    missÃ£o deve ensinar apenas um conceito principal e ser concluÃ­da em menos
     de 10 minutos.
     """
 
@@ -157,7 +185,7 @@ class Lesson(AuditedModel):
 
 
 class Question(AuditedModel):
-    """Questão de uma missão (05 - Database/Database Specification.md.md, "Questions")."""
+    """QuestÃ£o de uma missÃ£o (05 - Database/Database Specification.md.md, "Questions")."""
 
     __tablename__ = "questions"
     __table_args__ = (UniqueConstraint("lesson_id", "order", name="uq_questions_lesson_id_order"),)
@@ -184,7 +212,7 @@ class Question(AuditedModel):
 
 
 class Alternative(AuditedModel):
-    """Alternativa de uma questão (05 - Database/Database Specification.md.md, "Alternatives")."""
+    """Alternativa de uma questÃ£o (05 - Database/Database Specification.md.md, "Alternatives")."""
 
     __tablename__ = "alternatives"
     __table_args__ = (

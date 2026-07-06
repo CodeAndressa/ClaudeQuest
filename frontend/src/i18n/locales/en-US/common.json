@@ -118,6 +118,9 @@
       "upload": "Upload",
       "checklist": "Checklist",
       "free_answer": "Free answer"
-    }
+    },
+    "completed": "Lesson completed. You earned {{xp}} XP.",
+    "alreadyCompleted": "Lesson already completed. Your XP was not duplicated.",
+    "completeError": "Could not complete this lesson right now."
   }
 }

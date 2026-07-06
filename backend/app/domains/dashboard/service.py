@@ -31,7 +31,7 @@ class DashboardService:
         total_users = await self._dashboard.get_total_users()
         ranking = DashboardRanking(position=position, total_users=total_users)
 
-        next_lesson = await self._build_next_lesson()
+        next_lesson = await self._build_next_lesson(user_id)
 
         return DashboardResponse(
             xp=xp,
@@ -46,12 +46,12 @@ class DashboardService:
     def _calculate_streak(active_dates_desc: list[date]) -> DashboardStreak:
         """Conta dias consecutivos com pelo menos um XpLedger, a partir de hoje (UTC).
 
-        `active_dates_desc` já vem ordenada da mais recente para a mais antiga
-        (uma linha por dia distinto, sem duplicatas — garantido pelo `GROUP BY`
-        do Repository). A contagem para no primeiro "buraco": se o usuário não
-        tem XP hoje, o streak é 0 mesmo que tenha estudado ontem — regra do
-        Gamification Engine ("Streak... incrementa apenas quando o usuário
-        conclui pelo menos uma missão", contado dia a dia sem tolerância).
+        `active_dates_desc` jÃ¡ vem ordenada da mais recente para a mais antiga
+        (uma linha por dia distinto, sem duplicatas â€” garantido pelo `GROUP BY`
+        do Repository). A contagem para no primeiro "buraco": se o usuÃ¡rio nÃ£o
+        tem XP hoje, o streak Ã© 0 mesmo que tenha estudado ontem â€” regra do
+        Gamification Engine ("Streak... incrementa apenas quando o usuÃ¡rio
+        conclui pelo menos uma missÃ£o", contado dia a dia sem tolerÃ¢ncia).
         """
 
         if not active_dates_desc:
@@ -73,13 +73,14 @@ class DashboardService:
 
         return DashboardStreak(current_days=current_days, last_active_date=last_active_date)
 
-    async def _build_next_lesson(self) -> DashboardNextLesson | None:
-        result = await self._dashboard.get_first_lesson_of_first_active_track()
+    async def _build_next_lesson(self, user_id: UUID) -> DashboardNextLesson | None:
+        result = await self._dashboard.get_next_incomplete_lesson(user_id)
         if result is None:
             return None
-        track_title, lesson = result
+        track, lesson = result
         return DashboardNextLesson(
-            track_title=track_title,
+            track_id=track.id,
+            track_title=track.title,
             lesson_title=lesson.title,
             lesson_id=lesson.id,
         )

@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { I18nextProvider } from "react-i18next"
+import { MemoryRouter } from "react-router"
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
 
 import i18n from "@/i18n"
@@ -37,7 +38,9 @@ function renderPage() {
   return render(
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={queryClient}>
-        <DashboardPage />
+        <MemoryRouter>
+          <DashboardPage />
+        </MemoryRouter>
       </QueryClientProvider>
     </I18nextProvider>
   )
@@ -48,6 +51,7 @@ const fullDashboard: DashboardSummary = {
   streak: { current_days: 5, last_active_date: "2026-07-05" },
   ranking: { position: 12, total_users: 340 },
   next_lesson: {
+    track_id: "track-1",
     track_title: "Claude Chat",
     lesson_title: "Prompts eficazes",
     lesson_id: "lesson-1",
@@ -148,20 +152,19 @@ describe("DashboardPage", () => {
     })
   })
 
-  it("mostra mensagem de em breve ao clicar no botão de começar a próxima missão", async () => {
+  it("mostra link real para começar a próxima missão", async () => {
     vi.spyOn(dashboardService, "fetchDashboard").mockResolvedValue(fullDashboard)
 
     renderPage()
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /começar/i })).toBeInTheDocument()
+      expect(screen.getByRole("link", { name: /começar/i })).toBeInTheDocument()
     })
 
-    await userEvent.click(screen.getByRole("button", { name: /começar/i }))
-
-    expect(
-      screen.getByText(/esta missão ainda não está disponível\. em breve!/i)
-    ).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: /começar/i })).toHaveAttribute(
+      "href",
+      "/tracks/track-1/lessons/lesson-1"
+    )
   })
 
   it("mostra estado de em breve honesto para badges e certificados quando o usuário não tem nenhum", async () => {

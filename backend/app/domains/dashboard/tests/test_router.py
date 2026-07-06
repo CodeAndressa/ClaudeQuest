@@ -19,7 +19,7 @@ async def _create_user(session: AsyncSession, *, email: str, password: str) -> U
 
     user = User(
         organization_id=organization.id,
-        name="Usuária de Teste",
+        name="UsuÃ¡ria de Teste",
         email=email,
         password_hash=hash_password(password),
         role=UserRole.STUDENT,
@@ -59,7 +59,7 @@ async def _add_xp(
 async def _create_track_with_hierarchy(session: AsyncSession, *, title: str, order: int) -> Track:
     track = Track(
         title=title,
-        description="Descrição",
+        description="DescriÃ§Ã£o",
         difficulty="beginner",
         estimated_hours=1,
         order=order,
@@ -67,19 +67,19 @@ async def _create_track_with_hierarchy(session: AsyncSession, *, title: str, ord
     session.add(track)
     await session.flush()
 
-    module = Module(track_id=track.id, title="Módulo", description="Descrição", order=1)
+    module = Module(track_id=track.id, title="MÃ³dulo", description="DescriÃ§Ã£o", order=1)
     session.add(module)
     await session.flush()
 
-    level = Level(module_id=module.id, title="Nível 1", description="Descrição", level_number=1)
+    level = Level(module_id=module.id, title="NÃ­vel 1", description="DescriÃ§Ã£o", level_number=1)
     session.add(level)
     await session.flush()
 
     lesson = Lesson(
         level_id=level.id,
-        title=f"Missão de {title}",
-        description="Descrição",
-        content="Conteúdo",
+        title=f"MissÃ£o de {title}",
+        description="DescriÃ§Ã£o",
+        content="ConteÃºdo",
         order=1,
     )
     session.add(lesson)
@@ -136,8 +136,9 @@ class TestGetMyDashboard:
         assert response.status_code == 200
         next_lesson = response.json()["data"]["next_lesson"]
         assert next_lesson is not None
+        assert next_lesson["track_id"] == str(track_a.id)
         assert next_lesson["track_title"] == track_a.title
-        assert next_lesson["lesson_title"] == f"Missão de {track_a.title}"
+        assert next_lesson["lesson_title"] == f"MissÃ£o de {track_a.title}"
 
     async def test_reflects_xp_and_multi_day_streak(
         self, client_with_db: httpx.AsyncClient, db_session: AsyncSession

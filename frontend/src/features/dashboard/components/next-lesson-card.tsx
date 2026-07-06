@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { Link } from "react-router"
 import { useTranslation } from "react-i18next"
 import { Compass } from "lucide-react"
 
@@ -12,7 +12,6 @@ export interface NextLessonCardProps {
 
 export function NextLessonCard({ nextLesson }: NextLessonCardProps) {
   const { t } = useTranslation()
-  const [showComingSoon, setShowComingSoon] = useState(false)
 
   return (
     <Card>
@@ -28,19 +27,16 @@ export function NextLessonCard({ nextLesson }: NextLessonCardProps) {
         ) : (
           <>
             <div className="flex flex-col gap-1">
-              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              <span className="text-xs font-medium uppercase text-muted-foreground">
                 {nextLesson.track_title}
               </span>
               <span className="text-lg font-medium text-foreground">{nextLesson.lesson_title}</span>
             </div>
-            <Button onClick={() => setShowComingSoon(true)} className="w-fit">
-              {t("dashboard.nextLesson.cta")}
+            <Button asChild className="w-fit">
+              <Link to={`/tracks/${nextLesson.track_id}/lessons/${nextLesson.lesson_id}`}>
+                {t("dashboard.nextLesson.cta")}
+              </Link>
             </Button>
-            {showComingSoon && (
-              <p role="status" className="text-xs text-muted-foreground">
-                {t("dashboard.nextLesson.comingSoon")}
-              </p>
-            )}
           </>
         )}
       </CardContent>

@@ -1,10 +1,10 @@
-import { useMemo } from "react"
-import { useQuery } from "@tanstack/react-query"
+﻿import { useMemo } from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link, useParams } from "react-router"
 import { useTranslation } from "react-i18next"
 import { AlertTriangle, ArrowLeft, CheckCircle2, Clock, Loader2, Sparkles } from "lucide-react"
 
-import { fetchTrackDetail } from "@/features/learning/services/learning-service"
+import { completeLesson, fetchTrackDetail } from "@/features/learning/services/learning-service"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -45,9 +45,7 @@ function LessonContent({ content }: { content: string }) {
   return (
     <div className="flex flex-col gap-4 text-sm leading-7 text-foreground">
       {blocks.map((block, index) => {
-        if (block.startsWith("# ")) {
-          return null
-        }
+        if (block.startsWith("# ")) return null
 
         if (block.startsWith("## ")) {
           return (
@@ -119,11 +117,19 @@ function Questions({ lesson }: { lesson: LessonDetail }) {
 
 export function LessonPage() {
   const { t } = useTranslation()
+  const queryClient = useQueryClient()
   const { trackId, lessonId } = useParams<{ trackId: string; lessonId: string }>()
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ["learning", "tracks", trackId],
     queryFn: () => fetchTrackDetail(trackId!),
     enabled: Boolean(trackId),
+  })
+  const completeMutation = useMutation({
+    mutationFn: () => completeLesson(lessonId!),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["dashboard"] })
+      void queryClient.invalidateQueries({ queryKey: ["gamification"] })
+    },
   })
 
   const lesson = useMemo(() => findLesson(data, lessonId), [data, lessonId])
@@ -191,9 +197,29 @@ export function LessonPage() {
 
           <Questions lesson={lesson} />
 
-          <Button type="button" className="w-full md:w-fit" onClick={() => window.alert(t("lesson.completeComingSoon"))}>
-            {t("lesson.completeCta")}
-          </Button>
+          <div className="flex flex-col gap-3">
+            <Button
+              type="button"
+              className="w-full md:w-fit"
+              disabled={completeMutation.isPending || !lessonId}
+              onClick={() => completeMutation.mutate()}
+            >
+              {completeMutation.isPending ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : null}
+              {t("lesson.completeCta")}
+            </Button>
+            {completeMutation.isSuccess ? (
+              <p role="status" className="text-sm text-emerald-400">
+                {completeMutation.data.already_completed
+                  ? t("lesson.alreadyCompleted")
+                  : t("lesson.completed", { xp: completeMutation.data.xp_granted })}
+              </p>
+            ) : null}
+            {completeMutation.isError ? (
+              <p role="alert" className="text-sm text-destructive">
+                {t("lesson.completeError")}
+              </p>
+            ) : null}
+          </div>
         </>
       )}
     </div>

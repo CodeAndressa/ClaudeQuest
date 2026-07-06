@@ -118,6 +118,9 @@
       "upload": "Subida",
       "checklist": "Checklist",
       "free_answer": "Respuesta libre"
-    }
+    },
+    "completed": "Misión completada. Ganaste {{xp}} XP.",
+    "alreadyCompleted": "Misión ya completada. Tu XP no fue duplicado.",
+    "completeError": "No fue posible completar esta misión ahora."
   }
 }
