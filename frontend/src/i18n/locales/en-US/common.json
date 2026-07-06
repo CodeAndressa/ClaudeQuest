@@ -55,6 +55,7 @@
   "sidebar.userMenu.label": "User menu",
   "dashboard.title": "Your dashboard",
   "dashboard.error": "Couldn't load your dashboard right now. Please try again shortly.",
+  "dashboard.loading": "Loading...",
   "dashboard.retry": "Try again",
   "dashboard.xp.title": "XP & Level",
   "dashboard.xp.level": "Level {{level}}",
@@ -74,5 +75,49 @@
   "dashboard.badges.title": "Badges",
   "dashboard.badges.comingSoon": "You'll soon be able to earn badges here.",
   "dashboard.certificates.title": "Certificates",
-  "dashboard.certificates.comingSoon": "You'll soon be able to earn certificates here."
+  "dashboard.certificates.comingSoon": "You'll soon be able to earn certificates here.",
+  "tracks": {
+    "title": "Tracks",
+    "error": "We couldn't load the tracks.",
+    "retry": "Try again",
+    "empty": "No tracks available right now.",
+    "hours": "{{count}}h",
+    "modulesCount": "{{count}} modules",
+    "viewCta": "View track",
+    "difficulty": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced",
+      "expert": "Expert",
+      "master": "Master"
+    }
+  },
+  "trackDetail": {
+    "back": "Back to tracks",
+    "error": "We couldn't load this track.",
+    "retry": "Try again",
+    "modulesEmpty": "This track doesn't have any published modules yet.",
+    "level": "Level {{number}}",
+    "xp": "{{count}} XP",
+    "lessonsCount": "{{count}} lessons"
+  },
+  "lesson": {
+    "back": "Back to track",
+    "error": "We couldn't load this lesson.",
+    "retry": "Try again",
+    "xp": "{{count}} XP",
+    "estimatedMinutes": "{{count}} min",
+    "questionsTitle": "Questions",
+    "completeCta": "Complete lesson",
+    "completeComingSoon": "Progress tracking isn't available yet. Coming soon!",
+    "type": {
+      "reading": "Reading",
+      "quiz": "Quiz",
+      "challenge": "Challenge",
+      "lab": "Lab",
+      "upload": "Upload",
+      "checklist": "Checklist",
+      "free_answer": "Free answer"
+    }
+  }
 }

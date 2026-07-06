@@ -55,6 +55,7 @@
   "sidebar.userMenu.label": "Menú de usuario",
   "dashboard.title": "Tu panel",
   "dashboard.error": "No fue posible cargar tu panel ahora. Inténtalo de nuevo en unos instantes.",
+  "dashboard.loading": "Cargando...",
   "dashboard.retry": "Reintentar",
   "dashboard.xp.title": "XP y Nivel",
   "dashboard.xp.level": "Nivel {{level}}",
@@ -74,5 +75,49 @@
   "dashboard.badges.title": "Insignias",
   "dashboard.badges.comingSoon": "Pronto podrás conseguir insignias aquí.",
   "dashboard.certificates.title": "Certificados",
-  "dashboard.certificates.comingSoon": "Pronto podrás conseguir certificados aquí."
+  "dashboard.certificates.comingSoon": "Pronto podrás conseguir certificados aquí.",
+  "tracks": {
+    "title": "Rutas",
+    "error": "No se pudieron cargar las rutas.",
+    "retry": "Intentar de nuevo",
+    "empty": "No hay rutas disponibles por el momento.",
+    "hours": "{{count}}h",
+    "modulesCount": "{{count}} módulos",
+    "viewCta": "Ver ruta",
+    "difficulty": {
+      "beginner": "Principiante",
+      "intermediate": "Intermedio",
+      "advanced": "Avanzado",
+      "expert": "Experto",
+      "master": "Maestro"
+    }
+  },
+  "trackDetail": {
+    "back": "Volver a las rutas",
+    "error": "No se pudo cargar esta ruta.",
+    "retry": "Intentar de nuevo",
+    "modulesEmpty": "Esta ruta todavía no tiene módulos publicados.",
+    "level": "Nivel {{number}}",
+    "xp": "{{count}} XP",
+    "lessonsCount": "{{count}} misiones"
+  },
+  "lesson": {
+    "back": "Volver a la ruta",
+    "error": "No se pudo cargar esta misión.",
+    "retry": "Intentar de nuevo",
+    "xp": "{{count}} XP",
+    "estimatedMinutes": "{{count}} min",
+    "questionsTitle": "Preguntas",
+    "completeCta": "Completar misión",
+    "completeComingSoon": "El seguimiento de progreso todavía no está disponible. ¡Pronto!",
+    "type": {
+      "reading": "Lectura",
+      "quiz": "Quiz",
+      "challenge": "Desafío",
+      "lab": "Laboratorio",
+      "upload": "Subida",
+      "checklist": "Checklist",
+      "free_answer": "Respuesta libre"
+    }
+  }
 }

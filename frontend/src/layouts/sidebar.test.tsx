@@ -52,14 +52,20 @@ describe("Sidebar", () => {
     expect(link).toHaveAttribute("href", "/dashboard")
   })
 
-  it("mostra itens futuros (Trilhas/Ranking) como desabilitados, nunca como link", () => {
+  it("mostra o item de navegação de Trilhas como link funcional", () => {
     renderSidebar()
 
-    expect(screen.queryByRole("link", { name: /trilhas/i })).not.toBeInTheDocument()
+    const link = screen.getByRole("link", { name: /trilhas/i })
+    expect(link).toHaveAttribute("href", "/tracks")
+  })
+
+  it("mostra itens futuros (Ranking) como desabilitados, nunca como link", () => {
+    renderSidebar()
+
     expect(screen.queryByRole("link", { name: /ranking/i })).not.toBeInTheDocument()
 
     const comingSoonLabels = screen.getAllByText(/em breve/i)
-    expect(comingSoonLabels.length).toBeGreaterThanOrEqual(2)
+    expect(comingSoonLabels.length).toBeGreaterThanOrEqual(1)
   })
 
   it("alterna entre tema escuro e claro ao clicar no toggle de tema", async () => {

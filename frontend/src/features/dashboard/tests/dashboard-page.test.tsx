@@ -2,15 +2,31 @@ import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { I18nextProvider } from "react-i18next"
-import { beforeAll, describe, expect, it, vi } from "vitest"
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
 
 import i18n from "@/i18n"
 import { DashboardPage } from "@/features/dashboard/pages/dashboard-page"
 import * as dashboardService from "@/features/dashboard/services/dashboard-service"
+import * as gamificationService from "@/features/dashboard/services/gamification-service"
 import type { DashboardSummary } from "@/features/dashboard/types/dashboard"
+import type {
+  RankingSummary,
+  UserBadge,
+  UserCertificate,
+} from "@/features/dashboard/types/gamification"
 
 beforeAll(async () => {
   await i18n.changeLanguage("pt-BR")
+})
+
+const emptyRanking: RankingSummary = { top: [], current_user: null, total_users: 0 }
+const emptyBadges: UserBadge[] = []
+const emptyCertificates: UserCertificate[] = []
+
+beforeEach(() => {
+  vi.spyOn(gamificationService, "fetchRanking").mockResolvedValue(emptyRanking)
+  vi.spyOn(gamificationService, "fetchMyBadges").mockResolvedValue(emptyBadges)
+  vi.spyOn(gamificationService, "fetchMyCertificates").mockResolvedValue(emptyCertificates)
 })
 
 function renderPage() {
@@ -75,6 +91,11 @@ describe("DashboardPage", () => {
 
   it("mostra todos os cards com dados quando o backend responde com sucesso", async () => {
     vi.spyOn(dashboardService, "fetchDashboard").mockResolvedValue(fullDashboard)
+    vi.spyOn(gamificationService, "fetchRanking").mockResolvedValue({
+      top: [{ user_id: "1", name: "Eu", score: 720, position: 12 }],
+      current_user: { user_id: "1", name: "Eu", score: 720, position: 12 },
+      total_users: 340,
+    })
 
     renderPage()
 
@@ -88,13 +109,13 @@ describe("DashboardPage", () => {
     expect(screen.getByText("5")).toBeInTheDocument()
     expect(screen.getByText(/dias consecutivos/i)).toBeInTheDocument()
 
-    expect(screen.getByText("#12")).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText("#12")).toBeInTheDocument()
+    })
     expect(screen.getByText(/de 340 usuários/i)).toBeInTheDocument()
 
     expect(screen.getByText("Claude Chat")).toBeInTheDocument()
     expect(screen.getByText("Prompts eficazes")).toBeInTheDocument()
-
-    expect(screen.getAllByText(/em breve/i).length).toBeGreaterThanOrEqual(2)
   })
 
   it("mostra estado de streak zerado com mensagem de incentivo", async () => {
@@ -107,7 +128,7 @@ describe("DashboardPage", () => {
     })
   })
 
-  it("mostra estado vazio de ranking quando position é null", async () => {
+  it("mostra estado vazio de ranking quando não há usuário no ranking", async () => {
     vi.spyOn(dashboardService, "fetchDashboard").mockResolvedValue(emptyDashboard)
 
     renderPage()
@@ -143,7 +164,7 @@ describe("DashboardPage", () => {
     ).toBeInTheDocument()
   })
 
-  it("mostra estados de em breve honestos para badges e certificados, sempre vazios", async () => {
+  it("mostra estado de em breve honesto para badges e certificados quando o usuário não tem nenhum", async () => {
     vi.spyOn(dashboardService, "fetchDashboard").mockResolvedValue(fullDashboard)
 
     renderPage()
@@ -157,5 +178,42 @@ describe("DashboardPage", () => {
     expect(
       screen.getByText(/em breve você poderá conquistar certificados por aqui/i)
     ).toBeInTheDocument()
+  })
+
+  it("mostra badges e certificados reais quando o usuário já os conquistou", async () => {
+    vi.spyOn(dashboardService, "fetchDashboard").mockResolvedValue(fullDashboard)
+    vi.spyOn(gamificationService, "fetchMyBadges").mockResolvedValue([
+      {
+        id: "ub1",
+        badge_id: "b1",
+        earned_at: "2026-07-06T00:00:00Z",
+        badge: {
+          id: "b1",
+          name: "Primeiro Login",
+          description: "Concedido ao acessar a plataforma pela primeira vez.",
+          image: null,
+          category: "bronze",
+        },
+      },
+    ])
+    vi.spyOn(gamificationService, "fetchMyCertificates").mockResolvedValue([
+      {
+        id: "uc1",
+        certificate_id: "c1",
+        title: "Certificado Claude Chat",
+        hours: 4,
+        validation_code: "codigo-123",
+        issued_at: "2026-07-06T00:00:00Z",
+        pdf_url: null,
+      },
+    ])
+
+    renderPage()
+
+    await waitFor(() => {
+      expect(screen.getByText("Primeiro Login")).toBeInTheDocument()
+    })
+    expect(screen.getByText("Certificado Claude Chat")).toBeInTheDocument()
+    expect(screen.getByText(/4h · codigo-123/)).toBeInTheDocument()
   })
 })

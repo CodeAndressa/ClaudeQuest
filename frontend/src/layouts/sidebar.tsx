@@ -30,7 +30,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { to: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
-  { to: "/tracks", labelKey: "nav.tracks", icon: Map, disabled: true },
+  { to: "/tracks", labelKey: "nav.tracks", icon: Map },
   { to: "/ranking", labelKey: "nav.ranking", icon: Trophy, disabled: true },
 ]
 

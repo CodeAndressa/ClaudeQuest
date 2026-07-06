@@ -1,15 +1,16 @@
 import { useTranslation } from "react-i18next"
+import { useQuery } from "@tanstack/react-query"
 import { Trophy } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import type { DashboardRanking } from "@/features/dashboard/types/dashboard"
+import { fetchRanking } from "@/features/dashboard/services/gamification-service"
 
-export interface RankingCardProps {
-  ranking: DashboardRanking
-}
-
-export function RankingCard({ ranking }: RankingCardProps) {
+export function RankingCard() {
   const { t } = useTranslation()
+  const { data, isLoading } = useQuery({
+    queryKey: ["gamification", "ranking"],
+    queryFn: fetchRanking,
+  })
 
   return (
     <Card>
@@ -20,15 +21,21 @@ export function RankingCard({ ranking }: RankingCardProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
-        {ranking.position === null ? (
+        {isLoading && (
+          <span className="text-sm text-muted-foreground" role="status">
+            {t("dashboard.loading")}
+          </span>
+        )}
+        {!isLoading && !data?.current_user && (
           <span className="text-sm text-muted-foreground">{t("dashboard.ranking.empty")}</span>
-        ) : (
+        )}
+        {!isLoading && data?.current_user && (
           <>
             <span className="text-3xl font-semibold text-foreground">
-              {t("dashboard.ranking.position", { position: ranking.position })}
+              {t("dashboard.ranking.position", { position: data.current_user.position })}
             </span>
             <span className="text-sm text-muted-foreground">
-              {t("dashboard.ranking.totalUsers", { total: ranking.total_users })}
+              {t("dashboard.ranking.totalUsers", { total: data.total_users })}
             </span>
           </>
         )}

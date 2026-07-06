@@ -42,7 +42,7 @@ export function DashboardPage() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           <XpCard xp={data.xp} />
           <StreakCard streak={data.streak} />
-          <RankingCard ranking={data.ranking} />
+          <RankingCard />
           <NextLessonCard nextLesson={data.next_lesson} />
           <BadgesCard />
           <CertificatesCard />

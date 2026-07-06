@@ -55,6 +55,7 @@
   "sidebar.userMenu.label": "Menu do usuário",
   "dashboard.title": "Seu painel",
   "dashboard.error": "Não foi possível carregar seu painel agora. Tente novamente em instantes.",
+  "dashboard.loading": "Carregando...",
   "dashboard.retry": "Tentar novamente",
   "dashboard.xp.title": "XP e Nível",
   "dashboard.xp.level": "Nível {{level}}",
@@ -74,5 +75,49 @@
   "dashboard.badges.title": "Badges",
   "dashboard.badges.comingSoon": "Em breve você poderá conquistar badges por aqui.",
   "dashboard.certificates.title": "Certificados",
-  "dashboard.certificates.comingSoon": "Em breve você poderá conquistar certificados por aqui."
+  "dashboard.certificates.comingSoon": "Em breve você poderá conquistar certificados por aqui.",
+  "tracks": {
+    "title": "Trilhas",
+    "error": "Não foi possível carregar as trilhas.",
+    "retry": "Tentar novamente",
+    "empty": "Nenhuma trilha disponível no momento.",
+    "hours": "{{count}}h",
+    "modulesCount": "{{count}} módulos",
+    "viewCta": "Ver trilha",
+    "difficulty": {
+      "beginner": "Iniciante",
+      "intermediate": "Intermediário",
+      "advanced": "Avançado",
+      "expert": "Especialista",
+      "master": "Mestre"
+    }
+  },
+  "trackDetail": {
+    "back": "Voltar para trilhas",
+    "error": "Não foi possível carregar esta trilha.",
+    "retry": "Tentar novamente",
+    "modulesEmpty": "Esta trilha ainda não tem módulos publicados.",
+    "level": "Nível {{number}}",
+    "xp": "{{count}} XP",
+    "lessonsCount": "{{count}} missões"
+  },
+  "lesson": {
+    "back": "Voltar para a trilha",
+    "error": "Não foi possível carregar esta missão.",
+    "retry": "Tentar novamente",
+    "xp": "{{count}} XP",
+    "estimatedMinutes": "{{count}} min",
+    "questionsTitle": "Questões",
+    "completeCta": "Concluir missão",
+    "completeComingSoon": "O acompanhamento de progresso ainda não está disponível. Em breve!",
+    "type": {
+      "reading": "Leitura",
+      "quiz": "Quiz",
+      "challenge": "Desafio",
+      "lab": "Laboratório",
+      "upload": "Upload",
+      "checklist": "Checklist",
+      "free_answer": "Resposta livre"
+    }
+  }
 }
