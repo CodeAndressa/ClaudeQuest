@@ -7,10 +7,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 from app.core.config import get_settings
+from app.database import registry  # noqa: F401  — registra os modelos em Base.metadata
 from app.database.base import Base
-
-# import de todos os modelos de domínio para que fiquem registrados em Base.metadata
-# antes do autogenerate (cada domínio adiciona sua linha aqui conforme for criado)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

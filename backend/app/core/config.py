@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     database_url: str = Field(
         default="postgresql+asyncpg://claudequest:claudequest@localhost:5432/claudequest"
     )
+    test_database_url: str = Field(
+        default="postgresql+asyncpg://claudequest:claudequest@localhost:5432/claudequest_test"
+    )
 
     jwt_secret: str = Field(default="change-me-in-env")
     jwt_algorithm: str = "HS256"

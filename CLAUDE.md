@@ -34,6 +34,20 @@ arquitetura e decisão vive no Vault do Obsidian em
 - **Cobertura de testes**: mínimo 90% em qualquer camada; Services e Repositories do
   backend, quando existirem, devem chegar a 100%.
 - **Nunca** usar `TODO`, `FIXME`, código temporário ou mock definitivo.
+- **Novo modelo ORM de domínio**: sempre adicionar o import em `app/database/registry.py`.
+  Sem isso, o SQLAlchemy não registra a tabela em `Base.metadata` e FKs entre domínios
+  quebram em runtime (já aconteceu — ver histórico do AUTH-001).
+- **Testes de domínio** ficam em `app/domains/<dominio>/tests/` (não em `backend/tests/`,
+  que é só para infraestrutura compartilhada: config, logging, middlewares, health).
+- **Testes que tocam banco real** usam a fixture `db_session` (transação por teste,
+  revertida ao final) contra `TEST_DATABASE_URL` — nunca o banco de dev. Para testar
+  endpoints que dependem de banco, use a fixture `client_with_db` (que é um
+  `httpx.AsyncClient`, não o `TestClient` síncrono do FastAPI — o `TestClient` roda a
+  app numa thread com event loop próprio e quebra ao compartilhar uma conexão asyncpg
+  real com o setup do teste).
+- **Sem tela de cadastro**: usuários nascem via `backend/scripts/seed_demo_data.py` ou,
+  futuramente, pelo Admin (ADMIN-001). Nunca criar um endpoint de self-signup sem
+  isso estar no backlog.
 
 ## Portas e ambiente local
 
@@ -47,7 +61,7 @@ arquitetura e decisão vive no Vault do Obsidian em
 # Backend
 cd backend && uv run uvicorn app.main:app --reload --port 8002
 cd backend && uv run pytest --cov
-cd backend && uv run ruff check . && uv run mypy app && uv run bandit -r app
+cd backend && uv run ruff check . && uv run mypy app && uv run bandit -r app -q --exclude '*/tests/*,*/test_*'
 
 # Frontend
 cd frontend && npm run dev

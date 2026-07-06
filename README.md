@@ -49,6 +49,10 @@ uv sync
 uv run alembic upgrade head
 uv run uvicorn app.main:app --reload --port 8002
 
+# Usuário admin de demonstração (necessário: não existe tela de cadastro — ver ADR-011)
+uv run python scripts/seed_demo_data.py
+# admin@claudequest.dev / ClaudeQuest#2026
+
 # Frontend — roda em http://localhost:5180 (proxy de /api para o backend)
 cd frontend
 npm install
@@ -59,6 +63,14 @@ npm run dev
 > conflito com outros projetos locais da mesma máquina.
 
 ## Testes
+
+A suíte de testes do backend usa um banco **separado** do banco de desenvolvimento
+(`claudequest_test`, ver `TEST_DATABASE_URL` no `.env.example`) — nunca rode os testes
+apontando para o mesmo banco que o Alembic gerencia. O `docker compose up -d db` já cria
+os dois bancos automaticamente (via `docker/postgres/init-test-db.sh`).
+
+Cada domínio do backend mantém seus próprios testes em `app/domains/<dominio>/tests/`;
+testes de infraestrutura compartilhada (config, logging, middlewares) ficam em `backend/tests/`.
 
 ```bash
 # Backend — cobertura mínima de 90% (Services/Repositories exigem 100% quando existirem)
@@ -74,7 +86,7 @@ cd frontend && npm run test:e2e
 ## Qualidade de código
 
 ```bash
-cd backend && uv run ruff check . && uv run mypy app && uv run bandit -r app
+cd backend && uv run ruff check . && uv run mypy app && uv run bandit -r app -q --exclude '*/tests/*,*/test_*'
 cd frontend && npm run lint && npm run typecheck && npm run format:check
 ```
 

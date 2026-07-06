@@ -5,5 +5,17 @@
   "health.error": "No fue posible conectar con el servidor. Inténtalo de nuevo en unos instantes.",
   "health.retry": "Reintentar",
   "health.success": "¡Todo listo! El backend está en línea.",
-  "health.environment": "Entorno: {{environment}}"
+  "health.environment": "Entorno: {{environment}}",
+  "auth.login.title": "Inicia sesión en ClaudeQuest",
+  "auth.login.subtitle": "Usa las credenciales proporcionadas por tu organización.",
+  "auth.login.emailLabel": "Correo electrónico",
+  "auth.login.emailPlaceholder": "tu@empresa.com",
+  "auth.login.passwordLabel": "Contraseña",
+  "auth.login.passwordPlaceholder": "Tu contraseña",
+  "auth.login.submit": "Iniciar sesión",
+  "auth.login.errors.emailInvalid": "Ingresa un correo electrónico válido.",
+  "auth.login.errors.passwordRequired": "Ingresa tu contraseña.",
+  "auth.login.errors.invalidCredentials": "Correo electrónico o contraseña inválidos.",
+  "auth.login.errors.accountNotActive": "Esta cuenta no está activa. Contacta al administrador.",
+  "auth.login.errors.generic": "No fue posible iniciar sesión ahora. Inténtalo de nuevo en unos instantes."
 }

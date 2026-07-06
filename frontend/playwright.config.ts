@@ -3,6 +3,8 @@ import { defineConfig, devices } from "@playwright/test"
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
+  // Workers concorrentes demais causam "spawn UNKNOWN" ao lançar o Chromium neste ambiente.
+  workers: 2,
   retries: process.env.CI ? 2 : 0,
   reporter: "html",
   use: {

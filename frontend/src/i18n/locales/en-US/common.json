@@ -5,5 +5,17 @@
   "health.error": "Could not reach the server. Please try again shortly.",
   "health.retry": "Try again",
   "health.success": "All good! The backend is up.",
-  "health.environment": "Environment: {{environment}}"
+  "health.environment": "Environment: {{environment}}",
+  "auth.login.title": "Sign in to ClaudeQuest",
+  "auth.login.subtitle": "Use the credentials provided by your organization.",
+  "auth.login.emailLabel": "Email",
+  "auth.login.emailPlaceholder": "you@company.com",
+  "auth.login.passwordLabel": "Password",
+  "auth.login.passwordPlaceholder": "Your password",
+  "auth.login.submit": "Sign in",
+  "auth.login.errors.emailInvalid": "Enter a valid email address.",
+  "auth.login.errors.passwordRequired": "Enter your password.",
+  "auth.login.errors.invalidCredentials": "Invalid email or password.",
+  "auth.login.errors.accountNotActive": "This account isn't active. Contact your administrator.",
+  "auth.login.errors.generic": "Couldn't sign you in right now. Please try again shortly."
 }

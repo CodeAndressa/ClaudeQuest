@@ -14,6 +14,14 @@ AsyncSessionLocal = async_sessionmaker(
 
 
 async def get_db_session() -> AsyncGenerator[AsyncSession]:
-    """Dependency do FastAPI: fornece uma sessão de banco por requisição."""
+    """Dependency do FastAPI: fornece uma sessão de banco por requisição.
+
+    Commita ao final se a requisição for concluída sem exceções; desfaz em caso de erro.
+    """
     async with AsyncSessionLocal() as session:
-        yield session
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
