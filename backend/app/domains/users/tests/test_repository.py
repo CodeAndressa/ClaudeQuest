@@ -1,3 +1,4 @@
+import uuid
 from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -62,3 +63,32 @@ async def test_touch_last_login_updates_the_timestamp(db_session: AsyncSession) 
     await repository.touch_last_login(user, when)
 
     assert user.last_login == when
+
+
+async def test_get_by_id_returns_the_matching_user(db_session: AsyncSession) -> None:
+    user = await _create_user(db_session, email="rita@claudequest.dev")
+    repository = UserRepository(db_session)
+
+    result = await repository.get_by_id(user.id)
+
+    assert result is not None
+    assert result.email == "rita@claudequest.dev"
+
+
+async def test_get_by_id_returns_none_when_not_found(db_session: AsyncSession) -> None:
+    repository = UserRepository(db_session)
+
+    result = await repository.get_by_id(uuid.uuid4())
+
+    assert result is None
+
+
+async def test_get_by_id_ignores_soft_deleted_users(db_session: AsyncSession) -> None:
+    user = await _create_user(db_session, email="deletado@claudequest.dev")
+    user.deleted_at = datetime.now(UTC)
+    await db_session.flush()
+    repository = UserRepository(db_session)
+
+    result = await repository.get_by_id(user.id)
+
+    assert result is None

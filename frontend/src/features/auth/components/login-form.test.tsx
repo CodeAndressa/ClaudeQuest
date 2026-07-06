@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { I18nextProvider } from "react-i18next"
+import { MemoryRouter } from "react-router"
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
 
 import i18n from "@/i18n"
@@ -23,7 +24,9 @@ function renderForm(onSuccess = vi.fn()) {
   render(
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={queryClient}>
-        <LoginForm onSuccess={onSuccess} />
+        <MemoryRouter>
+          <LoginForm onSuccess={onSuccess} />
+        </MemoryRouter>
       </QueryClientProvider>
     </I18nextProvider>
   )
@@ -43,7 +46,6 @@ describe("LoginForm", () => {
   it("faz login com sucesso e chama onSuccess salvando a sessão", async () => {
     vi.spyOn(authService, "login").mockResolvedValue({
       access_token: "token-abc",
-      refresh_token: "refresh-abc",
       token_type: "bearer",
       expires_in: 1800,
       user: { id: "1", name: "Ana", email: "ana@claudequest.dev", role: "student" },

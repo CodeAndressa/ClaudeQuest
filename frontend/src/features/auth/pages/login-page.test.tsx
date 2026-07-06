@@ -46,7 +46,6 @@ describe("LoginPage", () => {
   it("navega para a página inicial após um login bem-sucedido", async () => {
     vi.spyOn(authService, "login").mockResolvedValue({
       access_token: "token-abc",
-      refresh_token: "refresh-abc",
       token_type: "bearer",
       expires_in: 1800,
       user: { id: "1", name: "Ana", email: "ana@claudequest.dev", role: "student" },

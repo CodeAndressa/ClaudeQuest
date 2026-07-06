@@ -39,6 +39,15 @@ def test_create_access_token_contains_subject_and_role() -> None:
     assert expires_in > 0
 
 
+def test_create_access_token_is_unique_even_for_the_same_user_within_the_same_second() -> None:
+    user_id = uuid.uuid4()
+
+    first, _ = create_access_token(user_id, "student")
+    second, _ = create_access_token(user_id, "student")
+
+    assert first != second
+
+
 def test_decode_access_token_rejects_tampered_token() -> None:
     token, _ = create_access_token(uuid.uuid4(), "student")
 

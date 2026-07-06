@@ -4,5 +4,15 @@ autogenerate do Alembic. Cada novo domínio adiciona sua linha aqui.
 """
 
 from app.domains.auth.model import Session  # noqa: F401
+from app.domains.auth.password_reset import PasswordResetToken  # noqa: F401
+from app.domains.gamification.model import XpLedger  # noqa: F401
+from app.domains.learning.model import (  # noqa: F401
+    Alternative,
+    Lesson,
+    Level,
+    Module,
+    Question,
+    Track,
+)
 from app.domains.organizations.model import Organization  # noqa: F401
 from app.domains.users.model import User  # noqa: F401

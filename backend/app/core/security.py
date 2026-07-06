@@ -1,5 +1,6 @@
 import hashlib
 import secrets
+import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID
@@ -30,6 +31,7 @@ def create_access_token(user_id: UUID, role: str) -> tuple[str, int]:
     payload = {
         "sub": str(user_id),
         "role": role,
+        "jti": str(uuid.uuid4()),
         "exp": datetime.now(UTC) + timedelta(minutes=settings.jwt_expire_minutes),
         "iat": datetime.now(UTC),
     }

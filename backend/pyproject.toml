@@ -38,6 +38,7 @@ testpaths = ["tests", "app"]
 source = ["app"]
 branch = true
 omit = ["*/tests/*"]
+concurrency = ["greenlet", "thread"]
 
 [tool.coverage.report]
 fail_under = 90

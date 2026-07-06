@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslation } from "react-i18next"
 import { useMutation } from "@tanstack/react-query"
+import { Link } from "react-router"
 import { Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -90,6 +91,9 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             {errors.password.message}
           </p>
         )}
+        <Link to="/forgot-password" className="self-end text-sm text-muted-foreground underline">
+          {t("auth.login.forgotPassword")}
+        </Link>
       </div>
 
       {formError && (

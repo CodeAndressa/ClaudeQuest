@@ -53,6 +53,9 @@ uv run uvicorn app.main:app --reload --port 8002
 uv run python scripts/seed_demo_data.py
 # admin@claudequest.dev / ClaudeQuest#2026
 
+# Conteúdo de demonstração da trilha "Claude Chat" (Track → Module → Level → Lesson → Question)
+uv run python scripts/seed_learning_content.py
+
 # Frontend — roda em http://localhost:5180 (proxy de /api para o backend)
 cd frontend
 npm install
@@ -89,6 +92,15 @@ cd frontend && npm run test:e2e
 cd backend && uv run ruff check . && uv run mypy app && uv run bandit -r app -q --exclude '*/tests/*,*/test_*'
 cd frontend && npm run lint && npm run typecheck && npm run format:check
 ```
+
+## Domínios implementados
+
+| Domínio | Endpoints | Status |
+|---|---|---|
+| `auth` | login, refresh, logout, me, forgot-password, reset-password | Completo (AUTH-001/002/003) |
+| `users`, `organizations` | (sem endpoints próprios ainda) | Schema mínimo para suportar auth |
+| `learning` | `GET /learning/tracks`, `GET /learning/tracks/{id}` | Somente leitura (LEARN-001 a 006 parciais — ver backlog no Vault) |
+| `gamification` | `GET /gamification/me`, `POST /gamification/xp` | Cálculo e persistência de XP (GAME-001 parcial — ver backlog no Vault) |
 
 ## Deploy
 

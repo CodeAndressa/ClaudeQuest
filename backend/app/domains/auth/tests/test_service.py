@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -130,3 +132,107 @@ async def test_login_rejects_inactive_account(db_session: AsyncSession) -> None:
 
     assert exc_info.value.code == "account_not_active"
     assert exc_info.value.status_code == 403
+
+
+async def test_refresh_issues_new_tokens_and_revokes_the_old_session(
+    db_session: AsyncSession,
+) -> None:
+    await _create_user(db_session, email="refresh-svc@claudequest.dev", password="senha-correta")
+    service = _build_service(db_session)
+    login_result = await service.login(
+        LoginRequest(email="refresh-svc@claudequest.dev", password="senha-correta"),
+        user_agent=None,
+        ip_address=None,
+    )
+
+    refreshed = await service.refresh(
+        login_result.refresh_token, user_agent="pytest", ip_address="127.0.0.1"
+    )
+
+    assert refreshed.access_token != login_result.access_token
+    assert refreshed.refresh_token != login_result.refresh_token
+
+    sessions = (await db_session.execute(select(AuthSession))).scalars().all()
+    assert len(sessions) == 2
+    revoked = [s for s in sessions if s.revoked_at is not None]
+    assert len(revoked) == 1
+
+
+async def test_refresh_rejects_none_token(db_session: AsyncSession) -> None:
+    service = _build_service(db_session)
+
+    with pytest.raises(AppError) as exc_info:
+        await service.refresh(None, user_agent=None, ip_address=None)
+
+    assert exc_info.value.code == "invalid_refresh_token"
+
+
+async def test_refresh_rejects_unknown_token(db_session: AsyncSession) -> None:
+    service = _build_service(db_session)
+
+    with pytest.raises(AppError) as exc_info:
+        await service.refresh("token-que-nao-existe", user_agent=None, ip_address=None)
+
+    assert exc_info.value.code == "invalid_refresh_token"
+
+
+async def test_refresh_rejects_inactive_account(db_session: AsyncSession) -> None:
+    user = await _create_user(
+        db_session, email="refresh-inactive@claudequest.dev", password="senha-correta"
+    )
+    service = _build_service(db_session)
+    login_result = await service.login(
+        LoginRequest(email="refresh-inactive@claudequest.dev", password="senha-correta"),
+        user_agent=None,
+        ip_address=None,
+    )
+    user.status = UserStatus.BLOCKED
+    await db_session.flush()
+
+    with pytest.raises(AppError) as exc_info:
+        await service.refresh(login_result.refresh_token, user_agent=None, ip_address=None)
+
+    assert exc_info.value.code == "account_not_active"
+
+
+async def test_refresh_rejects_a_session_whose_user_was_deleted(
+    db_session: AsyncSession,
+) -> None:
+    user = await _create_user(
+        db_session, email="refresh-deleted@claudequest.dev", password="senha-correta"
+    )
+    service = _build_service(db_session)
+    login_result = await service.login(
+        LoginRequest(email="refresh-deleted@claudequest.dev", password="senha-correta"),
+        user_agent=None,
+        ip_address=None,
+    )
+    user.deleted_at = datetime.now(UTC)
+    await db_session.flush()
+
+    with pytest.raises(AppError) as exc_info:
+        await service.refresh(login_result.refresh_token, user_agent=None, ip_address=None)
+
+    assert exc_info.value.code == "invalid_refresh_token"
+
+
+async def test_logout_revokes_the_session(db_session: AsyncSession) -> None:
+    await _create_user(db_session, email="logout-svc@claudequest.dev", password="senha-correta")
+    service = _build_service(db_session)
+    login_result = await service.login(
+        LoginRequest(email="logout-svc@claudequest.dev", password="senha-correta"),
+        user_agent=None,
+        ip_address=None,
+    )
+
+    await service.logout(login_result.refresh_token)
+
+    with pytest.raises(AppError) as exc_info:
+        await service.refresh(login_result.refresh_token, user_agent=None, ip_address=None)
+    assert exc_info.value.code == "invalid_refresh_token"
+
+
+async def test_logout_without_a_token_does_nothing(db_session: AsyncSession) -> None:
+    service = _build_service(db_session)
+
+    await service.logout(None)
