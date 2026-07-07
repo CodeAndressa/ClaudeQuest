@@ -14,6 +14,7 @@ from app.domains.learning.model import (  # noqa: F401
     Level,
     Module,
     Question,
+    School,
     Track,
     UserLessonProgress,
 )

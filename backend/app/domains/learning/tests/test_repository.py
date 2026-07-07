@@ -7,13 +7,29 @@ from app.domains.learning.model import (
     Module,
     Question,
     QuestionType,
+    School,
     Track,
 )
-from app.domains.learning.repository import TrackRepository
+from app.domains.learning.repository import SchoolRepository, TrackRepository
+
+
+async def _create_school(session: AsyncSession, *, title: str = "Claude Academy") -> School:
+    school = School(
+        title=title,
+        slug=title.lower().replace(" ", "-"),
+        description="Escola de IA aplicada.",
+        order=1,
+        is_active=True,
+    )
+    session.add(school)
+    await session.flush()
+    return school
 
 
 async def _create_full_track(session: AsyncSession, *, title: str = "Claude Chat") -> Track:
+    school = await _create_school(session, title=f"Escola {title}")
     track = Track(
+        school_id=school.id,
         title=title,
         description="Domine completamente o Claude Chat.",
         difficulty="beginner",
@@ -77,7 +93,9 @@ async def _create_full_track(session: AsyncSession, *, title: str = "Claude Chat
 
 async def test_list_active_returns_only_active_tracks_ordered(db_session: AsyncSession) -> None:
     active_track = await _create_full_track(db_session, title="Claude Chat")
+    inactive_school = await _create_school(db_session, title="Escola Inativa")
     inactive_track = Track(
+        school_id=inactive_school.id,
         title="Trilha Inativa",
         description="Não deve aparecer.",
         difficulty="beginner",
@@ -94,6 +112,32 @@ async def test_list_active_returns_only_active_tracks_ordered(db_session: AsyncS
     ids = [track.id for track in tracks]
     assert active_track.id in ids
     assert inactive_track.id not in ids
+
+
+async def test_list_active_filters_tracks_by_school(db_session: AsyncSession) -> None:
+    first_track = await _create_full_track(db_session, title="Claude Chat")
+    second_track = await _create_full_track(db_session, title="Claude Code")
+
+    repository = TrackRepository(db_session)
+    tracks = await repository.list_active(school_id=first_track.school_id)
+
+    assert [track.id for track in tracks] == [first_track.id]
+    assert second_track.id not in [track.id for track in tracks]
+
+
+async def test_list_schools_returns_active_schools_ordered(db_session: AsyncSession) -> None:
+    await _create_school(db_session, title="Escola B")
+    first = await _create_school(db_session, title="Escola A")
+    first.order = 0
+    inactive = await _create_school(db_session, title="Escola Inativa")
+    inactive.is_active = False
+    await db_session.flush()
+
+    repository = SchoolRepository(db_session)
+    schools = await repository.list_active()
+
+    assert [school.title for school in schools] == ["Escola A", "Escola B"]
+    assert inactive.id not in [school.id for school in schools]
 
 
 async def test_list_active_excludes_soft_deleted_tracks(db_session: AsyncSession) -> None:

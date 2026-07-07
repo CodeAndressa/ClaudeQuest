@@ -3,6 +3,7 @@ contra um banco real — os testes em test_ranking.py usam um repositório fake 
 nunca exercitam a query SQL de verdade (joins, subqueries, coalesce)."""
 
 from datetime import UTC, datetime
+from uuid import uuid4
 
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,7 +13,7 @@ from app.domains.gamification.badges import Badge, BadgeCategory, UserBadge
 from app.domains.gamification.certificates import Certificate, UserCertificate
 from app.domains.gamification.model import XpLedger
 from app.domains.gamification.ranking import RankingRepository
-from app.domains.learning.model import Track
+from app.domains.learning.model import School, Track
 from app.domains.organizations.model import Organization
 from app.domains.users.model import User, UserRole
 
@@ -34,6 +35,19 @@ async def _create_user(
     session.add(user)
     await session.flush()
     return user
+
+
+async def _create_school(session: AsyncSession, *, title: str = "Claude Academy") -> School:
+    school = School(
+        title=title,
+        slug=f"{title.lower().replace(' ', '-')}-{uuid4()}",
+        description="Escola de IA aplicada.",
+        order=1,
+        is_active=True,
+    )
+    session.add(school)
+    await session.flush()
+    return school
 
 
 async def test_get_all_entries_returns_zeroed_entry_for_user_without_any_data(
@@ -63,7 +77,9 @@ async def test_get_all_entries_aggregates_xp_badges_and_certificates(
     await db_session.flush()
     db_session.add(UserBadge(user_id=user.id, badge_id=badge.id, earned_at=datetime.now(UTC)))
 
+    school = await _create_school(db_session, title="Escola Ranking")
     track = Track(
+        school_id=school.id,
         title="Trilha Teste",
         description="x",
         difficulty="beginner",

@@ -3,6 +3,18 @@
 from pydantic import BaseModel, ConfigDict
 
 
+class SchoolSummary(BaseModel):
+    """Resumo de escola usado na listagem (GET /api/v1/learning/schools)."""
+
+    id: uuid.UUID
+    title: str
+    slug: str
+    description: str
+    icon: str | None
+    order: int
+    track_count: int
+
+
 class TrackSummary(BaseModel):
     """Resumo de trilha usado na listagem (GET /api/v1/learning/tracks)."""
 

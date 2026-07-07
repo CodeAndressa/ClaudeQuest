@@ -53,6 +53,7 @@ async def db_engine():  # type: ignore[no-untyped-def]
     settings = get_settings()
     engine = create_async_engine(settings.test_database_url)
     async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.drop_all)
         await connection.run_sync(Base.metadata.create_all)
     yield engine
     await engine.dispose()

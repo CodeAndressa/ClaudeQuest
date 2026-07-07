@@ -12,6 +12,7 @@ from app.domains.learning.model import (
     Level,
     Module,
     Question,
+    School,
     Track,
 )
 from app.domains.organizations.model import Organization
@@ -44,7 +45,18 @@ async def _create_user_and_login(
 
 
 async def _create_track_with_hierarchy(session: AsyncSession) -> Track:
+    school = School(
+        title="Claude Academy",
+        slug=f"claude-academy-{uuid.uuid4()}",
+        description="Escola de IA aplicada.",
+        order=1,
+        is_active=True,
+    )
+    session.add(school)
+    await session.flush()
+
     track = Track(
+        school_id=school.id,
         title="Claude Chat",
         description="Domine completamente o Claude Chat.",
         difficulty="beginner",
@@ -92,6 +104,33 @@ async def _create_track_with_hierarchy(session: AsyncSession) -> Track:
     return track
 
 
+async def test_list_schools_requires_authentication(client_with_db: httpx.AsyncClient) -> None:
+    response = await client_with_db.get("/api/v1/learning/schools")
+
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "unauthorized"
+
+
+async def test_list_schools_returns_active_schools(
+    client_with_db: httpx.AsyncClient, db_session: AsyncSession
+) -> None:
+    track = await _create_track_with_hierarchy(db_session)
+    token = await _create_user_and_login(
+        client_with_db, db_session, email="learner-school@claudequest.dev"
+    )
+
+    response = await client_with_db.get(
+        "/api/v1/learning/schools", headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    school = next(item for item in data if item["id"] == str(track.school_id))
+    assert school["title"] == "Claude Academy"
+    assert school["slug"].startswith("claude-academy")
+    assert school["track_count"] == 1
+
+
 async def test_list_tracks_requires_authentication(client_with_db: httpx.AsyncClient) -> None:
     response = await client_with_db.get("/api/v1/learning/tracks")
 
@@ -120,6 +159,29 @@ async def test_list_tracks_returns_active_tracks(
     assert item["total_lessons"] == 1
     assert item["completed_lessons"] == 0
     assert item["progress_percent"] == 0
+
+
+async def test_list_tracks_filters_by_school(
+    client_with_db: httpx.AsyncClient, db_session: AsyncSession
+) -> None:
+    first_track = await _create_track_with_hierarchy(db_session)
+    second_track = await _create_track_with_hierarchy(db_session)
+    second_track.title = "Claude Code"
+    second_track.order = 2
+    await db_session.flush()
+    token = await _create_user_and_login(
+        client_with_db, db_session, email="learner-filter@claudequest.dev"
+    )
+
+    response = await client_with_db.get(
+        f"/api/v1/learning/tracks?school_id={first_track.school_id}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    ids = [item["id"] for item in response.json()["data"]]
+    assert ids == [str(first_track.id)]
+    assert str(second_track.id) not in ids
 
 
 async def test_get_track_detail_requires_authentication(client_with_db: httpx.AsyncClient) -> None:

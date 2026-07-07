@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from uuid import uuid4
 
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,7 +11,7 @@ from app.domains.gamification.certificates import (
     UserCertificate,
     generate_validation_code,
 )
-from app.domains.learning.model import Track
+from app.domains.learning.model import School, Track
 from app.domains.organizations.model import Organization
 from app.domains.users.model import User, UserRole
 
@@ -42,8 +43,23 @@ async def _login(client: httpx.AsyncClient, *, email: str, password: str) -> str
     return token
 
 
+async def _create_school(session: AsyncSession, *, title: str = "Claude Academy") -> School:
+    school = School(
+        title=title,
+        slug=f"{title.lower().replace(' ', '-')}-{uuid4()}",
+        description="Escola de IA aplicada.",
+        order=1,
+        is_active=True,
+    )
+    session.add(school)
+    await session.flush()
+    return school
+
+
 async def _create_track(session: AsyncSession, *, title: str = "Claude Chat") -> Track:
+    school = await _create_school(session, title=f"Escola {title}")
     track = Track(
+        school_id=school.id,
         title=title,
         description="Domine completamente o Claude Chat.",
         difficulty="beginner",

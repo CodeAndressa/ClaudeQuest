@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import hash_password
 from app.domains.dashboard.repository import DashboardRepository
 from app.domains.gamification.model import XpLedger
-from app.domains.learning.model import Lesson, Level, Module, Track, UserLessonProgress
+from app.domains.learning.model import Lesson, Level, Module, School, Track, UserLessonProgress
 from app.domains.organizations.model import Organization
 from app.domains.users.model import User
 
@@ -47,8 +47,23 @@ async def _add_xp(
     return entry
 
 
+async def _create_school(session: AsyncSession, *, title: str) -> School:
+    school = School(
+        title=title,
+        slug=title.lower().replace(" ", "-"),
+        description="Escola de IA aplicada.",
+        order=1,
+        is_active=True,
+    )
+    session.add(school)
+    await session.flush()
+    return school
+
+
 async def _create_track_with_hierarchy(session: AsyncSession, *, order: int, title: str) -> Track:
+    school = await _create_school(session, title=f"Escola {title}")
     track = Track(
+        school_id=school.id,
         title=title,
         description="DescriÃ§Ã£o",
         difficulty="beginner",
@@ -240,7 +255,9 @@ class TestGetNextIncompleteLesson:
         user = await _create_user(db_session, email="dash-next-completed@claudequest.dev")
         track = await _create_track_with_hierarchy(db_session, order=1, title="Trilha Progresso")
         level_id = await db_session.scalar(
-            select(Level.id).join(Module, Module.id == Level.module_id).where(Module.track_id == track.id)
+            select(Level.id)
+            .join(Module, Module.id == Level.module_id)
+            .where(Module.track_id == track.id)
         )
         assert level_id is not None
         first_lesson = await db_session.scalar(

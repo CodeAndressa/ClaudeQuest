@@ -1,6 +1,5 @@
 import enum
 import uuid
-
 from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, Text, UniqueConstraint
@@ -64,6 +63,30 @@ class LessonType(enum.StrEnum):
     FREE_ANSWER = "free_answer"
 
 
+class School(AuditedModel):
+    """Escola do catalogo educacional.
+
+    Representa o nivel acima de trilhas na hierarquia oficial:
+    Academy -> School -> Track -> Module -> Level -> Lesson.
+    """
+
+    __tablename__ = "schools"
+    __table_args__ = (UniqueConstraint("slug", name="uq_schools_slug"),)
+
+    title: Mapped[str] = mapped_column(nullable=False)
+    slug: Mapped[str] = mapped_column(nullable=False)
+    description: Mapped[str] = mapped_column(Text(), nullable=False)
+    icon: Mapped[str | None] = mapped_column(default=None)
+    order: Mapped[int] = mapped_column(Integer(), nullable=False, default=0, index=True)
+    is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False, default=True)
+
+    tracks: Mapped[list["Track"]] = relationship(
+        back_populates="school",
+        cascade="all, delete-orphan",
+        order_by="Track.order",
+    )
+
+
 class Track(AuditedModel):
     """Trilha (05 - Database/Database Specification.md.md, seÃ§Ã£o "Tracks").
 
@@ -72,6 +95,9 @@ class Track(AuditedModel):
 
     __tablename__ = "tracks"
 
+    school_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("schools.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     title: Mapped[str] = mapped_column(nullable=False)
     description: Mapped[str] = mapped_column(Text(), nullable=False)
     difficulty: Mapped[str] = mapped_column(nullable=False, default="beginner")
@@ -81,6 +107,7 @@ class Track(AuditedModel):
     order: Mapped[int] = mapped_column(Integer(), nullable=False, default=0, index=True)
     is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False, default=True)
 
+    school: Mapped[School] = relationship(back_populates="tracks")
     modules: Mapped[list["Module"]] = relationship(
         back_populates="track",
         cascade="all, delete-orphan",

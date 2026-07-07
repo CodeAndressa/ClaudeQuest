@@ -2,13 +2,19 @@
 
 from app.domains.gamification.repository import XpLedgerRepository
 from app.domains.gamification.xp_rules import calculate_level, xp_to_next_level
-from app.domains.learning.model import Lesson, Track
-from app.domains.learning.repository import LessonProgressRepository, LessonRepository, TrackRepository
+from app.domains.learning.model import Lesson, School, Track
+from app.domains.learning.repository import (
+    LessonProgressRepository,
+    LessonRepository,
+    SchoolRepository,
+    TrackRepository,
+)
 from app.domains.learning.schemas import (
     CompleteLessonResponse,
     LessonDetail,
     LevelDetail,
     ModuleDetail,
+    SchoolSummary,
     TrackDetail,
     TrackSummary,
 )
@@ -30,18 +36,26 @@ _LESSON_NOT_FOUND = AppError(
 class LearningService:
     def __init__(
         self,
+        schools: SchoolRepository,
         tracks: TrackRepository,
         lessons: LessonRepository,
         progress: LessonProgressRepository,
         xp_ledger: XpLedgerRepository,
     ) -> None:
+        self._schools = schools
         self._tracks = tracks
         self._lessons = lessons
         self._progress = progress
         self._xp_ledger = xp_ledger
 
-    async def list_tracks(self, user_id: UUID) -> list[TrackSummary]:
-        tracks = await self._tracks.list_active()
+    async def list_schools(self) -> list[SchoolSummary]:
+        schools = await self._schools.list_active()
+        return [self._build_school_summary(school) for school in schools]
+
+    async def list_tracks(
+        self, user_id: UUID, *, school_id: UUID | None = None
+    ) -> list[TrackSummary]:
+        tracks = await self._tracks.list_active(school_id=school_id)
         completed_lesson_ids = await self._progress.list_completed_lesson_ids_for_user(user_id)
         return [self._build_track_summary(track, completed_lesson_ids) for track in tracks]
 
@@ -90,6 +104,22 @@ class LearningService:
             total_xp=total_xp,
             level=calculate_level(total_xp),
             xp_to_next_level=xp_to_next_level(total_xp),
+        )
+
+    @staticmethod
+    def _build_school_summary(school: School) -> SchoolSummary:
+        return SchoolSummary(
+            id=school.id,
+            title=school.title,
+            slug=school.slug,
+            description=school.description,
+            icon=school.icon,
+            order=school.order,
+            track_count=sum(
+                1
+                for track in school.tracks
+                if track.deleted_at is None and track.is_active
+            ),
         )
 
     @staticmethod

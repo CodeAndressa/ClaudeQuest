@@ -154,6 +154,7 @@ class TestGetSummaryNextLesson:
         )
         track = Track(
             id=uuid4(),
+            school_id=uuid4(),
             title="Claude Chat",
             description="Descricao",
             difficulty="beginner",

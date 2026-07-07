@@ -4,8 +4,13 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domains.gamification.repository import XpLedgerRepository
-from app.domains.learning.model import Lesson, Level, Module, Track
-from app.domains.learning.repository import LessonProgressRepository, LessonRepository, TrackRepository
+from app.domains.learning.model import Lesson, Level, Module, School, Track
+from app.domains.learning.repository import (
+    LessonProgressRepository,
+    LessonRepository,
+    SchoolRepository,
+    TrackRepository,
+)
 from app.domains.learning.service import LearningService
 from app.domains.organizations.model import Organization
 from app.domains.users.model import User, UserRole
@@ -14,6 +19,7 @@ from app.shared.errors import AppError
 
 def _build_service(session: AsyncSession) -> LearningService:
     return LearningService(
+        SchoolRepository(session),
         TrackRepository(session),
         LessonRepository(session),
         LessonProgressRepository(session),
@@ -22,7 +28,9 @@ def _build_service(session: AsyncSession) -> LearningService:
 
 
 
-async def _create_user(session: AsyncSession, *, email: str = "learner-service@claudequest.dev") -> User:
+async def _create_user(
+    session: AsyncSession, *, email: str = "learner-service@claudequest.dev"
+) -> User:
     organization = Organization(name="Org Learning", slug=f"org-{email}", plan="internal")
     session.add(organization)
     await session.flush()
@@ -38,8 +46,23 @@ async def _create_user(session: AsyncSession, *, email: str = "learner-service@c
     return user
 
 
+async def _create_school(session: AsyncSession, *, title: str = "Claude Academy") -> School:
+    school = School(
+        title=title,
+        slug=f"{title.lower().replace(' ', '-')}-{uuid.uuid4()}",
+        description="Escola de IA aplicada.",
+        order=1,
+        is_active=True,
+    )
+    session.add(school)
+    await session.flush()
+    return school
+
+
 async def _create_track(session: AsyncSession, *, is_active: bool = True) -> Track:
+    school = await _create_school(session)
     track = Track(
+        school_id=school.id,
         title="Claude Code",
         description="Especialista em desenvolvimento assistido por IA.",
         difficulty="advanced",
@@ -64,6 +87,19 @@ async def test_list_tracks_returns_active_tracks(db_session: AsyncSession) -> No
     assert result.total_lessons == 0
     assert result.completed_lessons == 0
     assert result.progress_percent == 0
+
+
+async def test_list_schools_returns_active_schools_with_track_count(
+    db_session: AsyncSession,
+) -> None:
+    track = await _create_track(db_session)
+    service = _build_service(db_session)
+
+    schools = await service.list_schools()
+
+    result = next(school for school in schools if school.id == track.school_id)
+    assert result.title == "Claude Academy"
+    assert result.track_count == 1
 
 
 async def test_get_track_detail_returns_the_track(db_session: AsyncSession) -> None:

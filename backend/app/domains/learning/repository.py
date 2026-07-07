@@ -11,9 +11,27 @@ from app.domains.learning.model import (
     Level,
     Module,
     Question,
+    School,
     Track,
     UserLessonProgress,
 )
+
+
+class SchoolRepository:
+    """Repositorio de escolas do catalogo."""
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def list_active(self) -> list[School]:
+        statement = (
+            select(School)
+            .where(School.is_active.is_(True), School.deleted_at.is_(None))
+            .order_by(School.order)
+            .options(selectinload(School.tracks.and_(Track.deleted_at.is_(None))))
+        )
+        result = await self._session.execute(statement)
+        return list(result.unique().scalars().all())
 
 
 class TrackRepository:
@@ -22,7 +40,7 @@ class TrackRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def list_active(self) -> list[Track]:
+    async def list_active(self, *, school_id: UUID | None = None) -> list[Track]:
         statement = (
             select(Track)
             .where(Track.is_active.is_(True), Track.deleted_at.is_(None))
@@ -33,6 +51,8 @@ class TrackRepository:
                 .selectinload(Level.lessons.and_(Lesson.deleted_at.is_(None)))
             )
         )
+        if school_id is not None:
+            statement = statement.where(Track.school_id == school_id)
         result = await self._session.execute(statement)
         return list(result.unique().scalars().all())
 

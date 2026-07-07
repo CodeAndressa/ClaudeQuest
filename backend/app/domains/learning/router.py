@@ -1,14 +1,24 @@
 ﻿from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.session import get_db_session
 from app.domains.auth.dependencies import get_current_user
 from app.domains.gamification.repository import XpLedgerRepository
-from app.domains.learning.repository import LessonProgressRepository, LessonRepository, TrackRepository
-from app.domains.learning.schemas import CompleteLessonResponse, TrackDetail, TrackSummary
+from app.domains.learning.repository import (
+    LessonProgressRepository,
+    LessonRepository,
+    SchoolRepository,
+    TrackRepository,
+)
+from app.domains.learning.schemas import (
+    CompleteLessonResponse,
+    SchoolSummary,
+    TrackDetail,
+    TrackSummary,
+)
 from app.domains.learning.service import LearningService
 from app.domains.users.model import User
 from app.shared.response import success_response
@@ -21,6 +31,7 @@ def get_learning_service(
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> LearningService:
     return LearningService(
+        SchoolRepository(session),
         TrackRepository(session),
         LessonRepository(session),
         LessonProgressRepository(session),
@@ -28,13 +39,24 @@ def get_learning_service(
     )
 
 
+@router.get("/schools")
+async def list_schools(
+    request: Request,
+    learning_service: Annotated[LearningService, Depends(get_learning_service)],
+    _current_user: Annotated[User, Depends(get_current_user)],
+) -> SuccessResponse[list[SchoolSummary]]:
+    schools = await learning_service.list_schools()
+    return success_response(request, "Escolas listadas com sucesso.", schools)
+
+
 @router.get("/tracks")
 async def list_tracks(
     request: Request,
     learning_service: Annotated[LearningService, Depends(get_learning_service)],
     current_user: Annotated[User, Depends(get_current_user)],
+    school_id: Annotated[UUID | None, Query()] = None,
 ) -> SuccessResponse[list[TrackSummary]]:
-    tracks = await learning_service.list_tracks(current_user.id)
+    tracks = await learning_service.list_tracks(current_user.id, school_id=school_id)
     return success_response(
         request,
         "Trilhas listadas com sucesso.",

@@ -1,13 +1,12 @@
+# ruff: noqa: E501
 """
 Cria o catalogo inicial de trilhas e conteudos da ClaudeQuest.
 
 Fonte: vault Obsidian `10 - Learning Content/Learning Content.md.md`.
 
-O modelo atual ainda nao possui a entidade School, entao as escolas do vault sao
-representadas aqui como trilhas globais do catalogo MVP. Cada trilha criada
-segue a hierarquia ja implementada no backend:
+Cada trilha criada segue a hierarquia implementada no backend:
 
-Track -> Module -> Level -> Lesson -> Question -> Alternative.
+School -> Track -> Module -> Level -> Lesson -> Question -> Alternative.
 
 Uso: uv run python scripts/seed_learning_content.py
 """
@@ -27,6 +26,7 @@ from app.domains.learning.model import (
     Module,
     Question,
     QuestionType,
+    School,
     Track,
 )
 
@@ -342,6 +342,12 @@ TRACKS: tuple[TrackSeed, ...] = (
 )
 
 
+SCHOOL_TITLE = "Claude Academy"
+SCHOOL_SLUG = "claude-academy"
+SCHOOL_DESCRIPTION = "Escola principal com trilhas de IA, Claude e desenvolvimento assistido."
+SCHOOL_ICON = "graduation-cap"
+
+
 def _content_for(track: TrackSeed, module: ModuleSeed, lesson: LessonSeed) -> str:
     return (
         f"# {lesson.title}\n\n"
@@ -360,6 +366,29 @@ async def _get_track(session: AsyncSession, title: str) -> Track | None:
     return await session.scalar(select(Track).where(Track.title == title))
 
 
+async def _get_or_create_school(session: AsyncSession) -> School:
+    school = await session.scalar(select(School).where(School.slug == SCHOOL_SLUG))
+    if school is None:
+        school = School(
+            title=SCHOOL_TITLE,
+            slug=SCHOOL_SLUG,
+            description=SCHOOL_DESCRIPTION,
+            icon=SCHOOL_ICON,
+            order=1,
+            is_active=True,
+        )
+        session.add(school)
+        await session.flush()
+        return school
+
+    school.title = SCHOOL_TITLE
+    school.description = SCHOOL_DESCRIPTION
+    school.icon = SCHOOL_ICON
+    school.order = 1
+    school.is_active = True
+    return school
+
+
 def _update_track_metadata(track: Track, track_data: TrackSeed) -> None:
     track.description = track_data.description
     track.difficulty = track_data.difficulty
@@ -369,8 +398,9 @@ def _update_track_metadata(track: Track, track_data: TrackSeed) -> None:
     track.is_active = True
 
 
-async def _create_track(session: AsyncSession, track_data: TrackSeed) -> None:
+async def _create_track(session: AsyncSession, school: School, track_data: TrackSeed) -> None:
     track = Track(
+        school_id=school.id,
         title=track_data.title,
         description=track_data.description,
         difficulty=track_data.difficulty,
@@ -453,15 +483,17 @@ async def _create_track(session: AsyncSession, track_data: TrackSeed) -> None:
 async def seed(session: AsyncSession) -> None:
     created_tracks = 0
     skipped_tracks: list[str] = []
+    school = await _get_or_create_school(session)
 
     for track_data in TRACKS:
         existing_track = await _get_track(session, track_data.title)
         if existing_track is not None:
+            existing_track.school_id = school.id
             _update_track_metadata(existing_track, track_data)
             skipped_tracks.append(track_data.title)
             continue
 
-        await _create_track(session, track_data)
+        await _create_track(session, school, track_data)
         created_tracks += 1
 
     await session.commit()
