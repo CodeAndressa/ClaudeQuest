@@ -33,7 +33,7 @@ function renderPage() {
       </QueryClientProvider>
     </I18nextProvider>
   )
-})
+}
 
 const trackDetail: TrackDetail = {
   id: "track-1",
@@ -101,4 +101,4 @@ describe("LessonPage", () => {
     expect(screen.getByRole("button", { name: /missão concluída/i })).toBeDisabled()
     expect(completeSpy).not.toHaveBeenCalled()
   })
-}
+})

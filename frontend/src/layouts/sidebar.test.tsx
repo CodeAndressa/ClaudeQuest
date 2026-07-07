@@ -9,6 +9,7 @@ import { Sidebar } from "@/layouts/sidebar"
 import * as authService from "@/services/auth-service"
 import { useAuthStore } from "@/store/auth-store"
 import { useThemeStore } from "@/store/theme-store"
+import type { AuthenticatedUser } from "@/types/auth"
 
 beforeAll(async () => {
   await i18n.changeLanguage("pt-BR")
@@ -25,7 +26,11 @@ beforeEach(() => {
   document.documentElement.classList.remove("light")
 })
 
-function renderSidebar() {
+function renderSidebar(role: AuthenticatedUser["role"] = "student") {
+  useAuthStore.setState({
+    user: { id: "1", name: "Ana Souza", email: "ana@claudequest.dev", role },
+  })
+
   return render(
     <I18nextProvider i18n={i18n}>
       <MemoryRouter initialEntries={["/dashboard"]}>
@@ -57,6 +62,19 @@ describe("Sidebar", () => {
 
     const link = screen.getByRole("link", { name: /trilhas/i })
     expect(link).toHaveAttribute("href", "/tracks")
+  })
+
+  it("mostra o item Admin como link funcional para usuario admin", () => {
+    renderSidebar("admin")
+
+    const link = screen.getByRole("link", { name: /admin/i })
+    expect(link).toHaveAttribute("href", "/admin")
+  })
+
+  it("nao mostra o item Admin para usuario student", () => {
+    renderSidebar("student")
+
+    expect(screen.queryByRole("link", { name: /admin/i })).not.toBeInTheDocument()
   })
 
   it("mostra itens futuros (Ranking) como desabilitados, nunca como link", () => {

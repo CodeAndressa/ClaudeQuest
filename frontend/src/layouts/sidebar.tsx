@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   Map,
   Trophy,
+  ShieldCheck,
   Moon,
   Sun,
   Languages,
@@ -26,11 +27,13 @@ interface NavItem {
   labelKey: string
   icon: typeof LayoutDashboard
   disabled?: boolean
+  adminOnly?: boolean
 }
 
 const NAV_ITEMS: NavItem[] = [
   { to: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
   { to: "/tracks", labelKey: "nav.tracks", icon: Map },
+  { to: "/admin", labelKey: "nav.admin", icon: ShieldCheck, adminOnly: true },
   { to: "/ranking", labelKey: "nav.ranking", icon: Trophy, disabled: true },
 ]
 
@@ -89,7 +92,7 @@ export function Sidebar({ isMobile = false, onNavigate }: SidebarProps) {
         </div>
 
         <nav aria-label={t("nav.dashboard")} className="flex flex-col gap-1">
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.filter((item) => !item.adminOnly || user?.role === "admin").map((item) => {
             const Icon = item.icon
             if (item.disabled) {
               return (

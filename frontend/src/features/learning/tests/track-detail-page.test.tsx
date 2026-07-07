@@ -33,7 +33,7 @@ function renderPage() {
       </QueryClientProvider>
     </I18nextProvider>
   )
-})
+}
 
 const trackDetail: TrackDetail = {
   id: "track-1",
@@ -119,4 +119,4 @@ describe("TrackDetailPage", () => {
     expect(screen.getByText("Segunda missão")).toBeInTheDocument()
     expect(screen.getByText("Concluída")).toBeInTheDocument()
   })
-}
+})

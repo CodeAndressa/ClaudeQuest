@@ -1,8 +1,10 @@
 import { BrowserRouter, Route, Routes } from "react-router"
 
 import { RequireAuth } from "@/features/auth/components/require-auth"
+import { RequireAdmin } from "@/features/auth/components/require-admin"
 import { RequireGuest } from "@/features/auth/components/require-guest"
 import { HealthPage } from "@/features/health/health-page"
+import { AdminHomePage } from "@/features/admin/pages/admin-home-page"
 import { DashboardPage } from "@/features/dashboard/pages/dashboard-page"
 import { TracksPage } from "@/features/learning/pages/tracks-page"
 import { TrackDetailPage } from "@/features/learning/pages/track-detail-page"
@@ -29,6 +31,14 @@ function App() {
           <Route path="tracks" element={<TracksPage />} />
           <Route path="tracks/:trackId" element={<TrackDetailPage />} />
           <Route path="tracks/:trackId/lessons/:lessonId" element={<LessonPage />} />
+          <Route
+            path="admin"
+            element={
+              <RequireAdmin>
+                <AdminHomePage />
+              </RequireAdmin>
+            }
+          />
           <Route path="_status" element={<HealthPage />} />
         </Route>
         <Route
