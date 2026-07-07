@@ -32,13 +32,13 @@ def get_learning_service(
 async def list_tracks(
     request: Request,
     learning_service: Annotated[LearningService, Depends(get_learning_service)],
-    _current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> SuccessResponse[list[TrackSummary]]:
-    tracks = await learning_service.list_tracks()
+    tracks = await learning_service.list_tracks(current_user.id)
     return success_response(
         request,
         "Trilhas listadas com sucesso.",
-        [TrackSummary.model_validate(track) for track in tracks],
+        tracks,
     )
 
 
@@ -47,12 +47,10 @@ async def get_track_detail(
     request: Request,
     track_id: UUID,
     learning_service: Annotated[LearningService, Depends(get_learning_service)],
-    _current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> SuccessResponse[TrackDetail]:
-    track = await learning_service.get_track_detail(track_id)
-    return success_response(
-        request, "Detalhe da trilha obtido com sucesso.", TrackDetail.model_validate(track)
-    )
+    track = await learning_service.get_track_detail(track_id=track_id, user_id=current_user.id)
+    return success_response(request, "Detalhe da trilha obtido com sucesso.", track)
 
 
 @router.post("/lessons/{lesson_id}/complete")

@@ -27,9 +27,14 @@ class TrackRepository:
             select(Track)
             .where(Track.is_active.is_(True), Track.deleted_at.is_(None))
             .order_by(Track.order)
+            .options(
+                selectinload(Track.modules.and_(Module.deleted_at.is_(None)))
+                .selectinload(Module.levels.and_(Level.deleted_at.is_(None)))
+                .selectinload(Level.lessons.and_(Lesson.deleted_at.is_(None)))
+            )
         )
         result = await self._session.execute(statement)
-        return list(result.scalars().all())
+        return list(result.unique().scalars().all())
 
     async def get_detail_by_id(self, track_id: UUID) -> Track | None:
         statement = (
@@ -71,6 +76,14 @@ class LessonProgressRepository:
         )
         result = await self._session.execute(statement)
         return result.scalar_one_or_none()
+
+    async def list_completed_lesson_ids_for_user(self, user_id: UUID) -> set[UUID]:
+        statement = select(UserLessonProgress.lesson_id).where(
+            UserLessonProgress.user_id == user_id,
+            UserLessonProgress.deleted_at.is_(None),
+        )
+        result = await self._session.execute(statement)
+        return set(result.scalars().all())
 
     async def create(
         self, *, user_id: UUID, lesson_id: UUID, xp_awarded: int

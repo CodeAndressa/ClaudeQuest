@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query"
 import { Link, useParams } from "react-router"
 import { useTranslation } from "react-i18next"
-import { AlertTriangle, ArrowLeft, Clock, Loader2 } from "lucide-react"
+import { AlertTriangle, ArrowLeft, CheckCircle2, Clock, Loader2 } from "lucide-react"
 
 import { fetchTrackDetail } from "@/features/learning/services/learning-service"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import type { LevelDetail, ModuleDetail } from "@/features/learning/types/learning"
@@ -49,17 +50,37 @@ function LevelPath({ trackId, level }: { trackId: string; level: LevelDetail }) 
         {lessons.map((lesson) => (
           <li key={lesson.id} className="relative">
             <span
-              className="absolute -left-[29px] top-1.5 size-3 rounded-full border-2 border-primary bg-background"
+              className={`absolute -left-[31px] top-3 flex size-4 items-center justify-center rounded-full border-2 ${
+                lesson.completed
+                  ? "border-emerald-400 bg-emerald-400 text-background"
+                  : "border-primary bg-background"
+              }`}
               aria-hidden="true"
-            />
+            >
+              {lesson.completed ? <CheckCircle2 className="size-3" /> : null}
+            </span>
             <Link
               to={`/tracks/${trackId}/lessons/${lesson.id}`}
-              className="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-4 py-3 text-sm transition-colors duration-150 hover:bg-accent"
+              className={`flex items-center justify-between gap-3 rounded-md border px-4 py-3 text-sm transition-colors duration-150 hover:bg-accent ${
+                lesson.completed
+                  ? "border-emerald-500/40 bg-emerald-500/10"
+                  : "border-border bg-card"
+              }`}
             >
-              <span className="font-medium text-foreground">{lesson.title}</span>
-              <span className="flex items-center gap-1 text-muted-foreground">
+              <span className="flex flex-col gap-1">
+                <span className="font-medium text-foreground">{lesson.title}</span>
+                {lesson.completed ? (
+                  <span className="text-xs font-medium text-emerald-400">
+                    {t("lesson.completedBadge")}
+                  </span>
+                ) : null}
+              </span>
+              <span className="flex shrink-0 items-center gap-1 text-muted-foreground">
+                {lesson.completed ? (
+                  <CheckCircle2 className="size-3.5 text-emerald-400" aria-hidden="true" />
+                ) : null}
                 <Clock className="size-3.5" aria-hidden="true" />
-                {lesson.estimated_minutes}
+                {t("lesson.estimatedMinutes", { count: lesson.estimated_minutes })}
               </span>
             </Link>
           </li>
@@ -100,6 +121,13 @@ export function TrackDetailPage() {
   })
 
   const modules = data ? [...data.modules].sort((a, b) => a.order - b.order) : []
+  const progressLabel = data
+    ? t("trackDetail.progress", {
+        completed: data.completed_lessons,
+        total: data.total_lessons,
+        percent: data.progress_percent,
+      })
+    : ""
 
   return (
     <div className="flex flex-col gap-6 px-4 py-8 md:px-8">
@@ -131,6 +159,13 @@ export function TrackDetailPage() {
           <div className="flex flex-col gap-2">
             <h1 className="text-2xl font-semibold text-foreground">{data.title}</h1>
             <p className="text-sm text-muted-foreground">{data.description}</p>
+            <div className="mt-2 flex flex-col gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
+                <span>{progressLabel}</span>
+                <span>{t("trackDetail.progressPercent", { percent: data.progress_percent })}</span>
+              </div>
+              <Progress value={data.progress_percent} aria-label={progressLabel} />
+            </div>
           </div>
 
           {modules.length === 0 ? (

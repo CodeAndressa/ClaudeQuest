@@ -83,6 +83,8 @@
     "empty": "No tracks available right now.",
     "hours": "{{count}}h",
     "modulesCount": "{{count}} modules",
+    "progress": "{{completed}} of {{total}} lessons completed",
+    "progressPercent": "{{percent}}%",
     "viewCta": "View track",
     "difficulty": {
       "beginner": "Beginner",
@@ -99,7 +101,9 @@
     "modulesEmpty": "This track doesn't have any published modules yet.",
     "level": "Level {{number}}",
     "xp": "{{count}} XP",
-    "lessonsCount": "{{count}} lessons"
+    "lessonsCount": "{{count}} lessons",
+    "progress": "{{completed}} of {{total}} lessons completed",
+    "progressPercent": "{{percent}}%"
   },
   "lesson": {
     "back": "Back to track",
@@ -109,6 +113,8 @@
     "estimatedMinutes": "{{count}} min",
     "questionsTitle": "Questions",
     "completeCta": "Complete lesson",
+    "completedCta": "Lesson completed",
+    "completedBadge": "Completed",
     "completeComingSoon": "Progress tracking isn't available yet. Coming soon!",
     "type": {
       "reading": "Reading",

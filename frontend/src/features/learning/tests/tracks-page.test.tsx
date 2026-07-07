@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { I18nextProvider } from "react-i18next"
 import { MemoryRouter } from "react-router"
-import { beforeAll, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
 
 import i18n from "@/i18n"
 import { TracksPage } from "@/features/learning/pages/tracks-page"
@@ -12,6 +12,10 @@ import type { TrackSummary } from "@/features/learning/types/learning"
 
 beforeAll(async () => {
   await i18n.changeLanguage("pt-BR")
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
 })
 
 function renderPage() {
@@ -37,6 +41,9 @@ const tracks: TrackSummary[] = [
     description: "Técnicas avançadas de prompting.",
     difficulty: "advanced",
     estimated_hours: 6,
+    total_lessons: 4,
+    completed_lessons: 2,
+    progress_percent: 50,
     image: null,
     icon: null,
     order: 2,
@@ -47,6 +54,9 @@ const tracks: TrackSummary[] = [
     description: "Introdução ao Claude.",
     difficulty: "beginner",
     estimated_hours: 3,
+    total_lessons: 2,
+    completed_lessons: 0,
+    progress_percent: 0,
     image: null,
     icon: null,
     order: 1,
@@ -87,7 +97,7 @@ describe("TracksPage", () => {
     })
   })
 
-  it("mostra as trilhas ordenadas com título, dificuldade, horas e link para a trilha", async () => {
+  it("mostra as trilhas ordenadas com título, dificuldade, horas, progresso e link para a trilha", async () => {
     vi.spyOn(learningService, "fetchTracks").mockResolvedValue(tracks)
 
     renderPage()
@@ -101,6 +111,12 @@ describe("TracksPage", () => {
     expect(screen.getByText("Avançado")).toBeInTheDocument()
     expect(screen.getByText("3h")).toBeInTheDocument()
     expect(screen.getByText("6h")).toBeInTheDocument()
+    expect(screen.getByText("0 de 2 missões concluídas")).toBeInTheDocument()
+    expect(screen.getByText("2 de 4 missões concluídas")).toBeInTheDocument()
+    expect(screen.getByRole("progressbar", { name: "2 de 4 missões concluídas" })).toHaveAttribute(
+      "aria-valuenow",
+      "50"
+    )
 
     const links = screen.getAllByRole("link", { name: /ver trilha/i })
     expect(links).toHaveLength(2)

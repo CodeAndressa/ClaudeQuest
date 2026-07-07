@@ -83,6 +83,8 @@
     "empty": "No hay rutas disponibles por el momento.",
     "hours": "{{count}}h",
     "modulesCount": "{{count}} módulos",
+    "progress": "{{completed}} de {{total}} misiones completadas",
+    "progressPercent": "{{percent}}%",
     "viewCta": "Ver ruta",
     "difficulty": {
       "beginner": "Principiante",
@@ -99,7 +101,9 @@
     "modulesEmpty": "Esta ruta todavía no tiene módulos publicados.",
     "level": "Nivel {{number}}",
     "xp": "{{count}} XP",
-    "lessonsCount": "{{count}} misiones"
+    "lessonsCount": "{{count}} misiones",
+    "progress": "{{completed}} de {{total}} misiones completadas",
+    "progressPercent": "{{percent}}%"
   },
   "lesson": {
     "back": "Volver a la ruta",
@@ -109,6 +113,8 @@
     "estimatedMinutes": "{{count}} min",
     "questionsTitle": "Preguntas",
     "completeCta": "Completar misión",
+    "completedCta": "Misión completada",
+    "completedBadge": "Completada",
     "completeComingSoon": "El seguimiento de progreso todavía no está disponible. ¡Pronto!",
     "type": {
       "reading": "Lectura",

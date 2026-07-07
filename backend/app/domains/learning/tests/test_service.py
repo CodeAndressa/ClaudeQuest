@@ -37,6 +37,7 @@ async def _create_user(session: AsyncSession, *, email: str = "learner-service@c
     await session.flush()
     return user
 
+
 async def _create_track(session: AsyncSession, *, is_active: bool = True) -> Track:
     track = Track(
         title="Claude Code",
@@ -53,11 +54,16 @@ async def _create_track(session: AsyncSession, *, is_active: bool = True) -> Tra
 
 async def test_list_tracks_returns_active_tracks(db_session: AsyncSession) -> None:
     track = await _create_track(db_session)
+    user = await _create_user(db_session)
     service = _build_service(db_session)
 
-    tracks = await service.list_tracks()
+    tracks = await service.list_tracks(user.id)
 
     assert track.id in [t.id for t in tracks]
+    result = next(t for t in tracks if t.id == track.id)
+    assert result.total_lessons == 0
+    assert result.completed_lessons == 0
+    assert result.progress_percent == 0
 
 
 async def test_get_track_detail_returns_the_track(db_session: AsyncSession) -> None:
@@ -74,19 +80,24 @@ async def test_get_track_detail_returns_the_track(db_session: AsyncSession) -> N
         )
     )
     await db_session.flush()
+    user = await _create_user(db_session)
     service = _build_service(db_session)
 
-    result = await service.get_track_detail(track.id)
+    result = await service.get_track_detail(track_id=track.id, user_id=user.id)
 
     assert result.id == track.id
     assert len(result.modules) == 1
+    assert result.total_lessons == 0
+    assert result.completed_lessons == 0
+    assert result.progress_percent == 0
 
 
 async def test_get_track_detail_raises_when_not_found(db_session: AsyncSession) -> None:
+    user = await _create_user(db_session)
     service = _build_service(db_session)
 
     with pytest.raises(AppError) as exc_info:
-        await service.get_track_detail(uuid.uuid4())
+        await service.get_track_detail(track_id=uuid.uuid4(), user_id=user.id)
 
     assert exc_info.value.code == "track_not_found"
     assert exc_info.value.status_code == 404
@@ -94,10 +105,11 @@ async def test_get_track_detail_raises_when_not_found(db_session: AsyncSession) 
 
 async def test_get_track_detail_raises_when_inactive(db_session: AsyncSession) -> None:
     track = await _create_track(db_session, is_active=False)
+    user = await _create_user(db_session)
     service = _build_service(db_session)
 
     with pytest.raises(AppError) as exc_info:
-        await service.get_track_detail(track.id)
+        await service.get_track_detail(track_id=track.id, user_id=user.id)
 
     assert exc_info.value.code == "track_not_found"
 
@@ -125,6 +137,9 @@ async def test_complete_lesson_awards_xp_once(db_session: AsyncSession) -> None:
 
     first = await service.complete_lesson(user_id=user.id, lesson_id=lesson.id)
     second = await service.complete_lesson(user_id=user.id, lesson_id=lesson.id)
+    track_detail = await service.get_track_detail(track_id=track.id, user_id=user.id)
+    track_summaries = await service.list_tracks(user.id)
+    track_summary = next(item for item in track_summaries if item.id == track.id)
 
     assert first.completed is True
     assert first.already_completed is False
@@ -134,6 +149,11 @@ async def test_complete_lesson_awards_xp_once(db_session: AsyncSession) -> None:
     assert second.already_completed is True
     assert second.xp_granted == 0
     assert second.total_xp == 35
+    assert track_detail.completed_lessons == 1
+    assert track_detail.progress_percent == 100
+    assert track_detail.modules[0].levels[0].lessons[0].completed is True
+    assert track_summary.completed_lessons == 1
+    assert track_summary.progress_percent == 100
 
 
 async def test_complete_lesson_raises_when_not_found(db_session: AsyncSession) -> None:

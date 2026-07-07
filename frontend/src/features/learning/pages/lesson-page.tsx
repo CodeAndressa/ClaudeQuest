@@ -26,7 +26,10 @@ function LessonSkeleton() {
   )
 }
 
-function findLesson(track: Awaited<ReturnType<typeof fetchTrackDetail>> | undefined, lessonId: string | undefined) {
+function findLesson(
+  track: Awaited<ReturnType<typeof fetchTrackDetail>> | undefined,
+  lessonId: string | undefined
+) {
   if (!track || !lessonId) return null
 
   for (const module of track.modules) {
@@ -89,14 +92,22 @@ function Questions({ lesson }: { lesson: LessonDetail }) {
                     className="flex items-start gap-3 rounded-md border border-border bg-background px-3 py-2 text-sm"
                   >
                     {alternative.is_correct ? (
-                      <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-400" aria-hidden="true" />
+                      <CheckCircle2
+                        className="mt-0.5 size-4 shrink-0 text-emerald-400"
+                        aria-hidden="true"
+                      />
                     ) : (
-                      <span className="mt-1.5 size-2 shrink-0 rounded-full bg-muted-foreground/60" aria-hidden="true" />
+                      <span
+                        className="mt-1.5 size-2 shrink-0 rounded-full bg-muted-foreground/60"
+                        aria-hidden="true"
+                      />
                     )}
                     <div className="flex flex-col gap-1">
                       <span className="text-foreground">{alternative.text}</span>
                       {alternative.feedback ? (
-                        <span className="text-xs text-muted-foreground">{alternative.feedback}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {alternative.feedback}
+                        </span>
                       ) : null}
                     </div>
                   </div>
@@ -127,6 +138,8 @@ export function LessonPage() {
   const completeMutation = useMutation({
     mutationFn: () => completeLesson(lessonId!),
     onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["learning", "tracks"] })
+      void queryClient.invalidateQueries({ queryKey: ["learning", "tracks", trackId] })
       void queryClient.invalidateQueries({ queryKey: ["dashboard"] })
       void queryClient.invalidateQueries({ queryKey: ["gamification"] })
     },
@@ -184,6 +197,12 @@ export function LessonPage() {
                 {t("lesson.estimatedMinutes", { count: lesson.estimated_minutes })}
               </span>
               <span>{t("lesson.xp", { count: lesson.xp })}</span>
+              {lesson.completed ? (
+                <span className="inline-flex items-center gap-1 font-medium text-emerald-400">
+                  <CheckCircle2 className="size-4" aria-hidden="true" />
+                  {t("lesson.completedBadge")}
+                </span>
+              ) : null}
             </div>
             <h1 className="text-2xl font-semibold text-foreground">{lesson.title}</h1>
             <p className="text-sm text-muted-foreground">{lesson.description}</p>
@@ -201,11 +220,14 @@ export function LessonPage() {
             <Button
               type="button"
               className="w-full md:w-fit"
-              disabled={completeMutation.isPending || !lessonId}
+              variant={lesson.completed ? "outline" : "default"}
+              disabled={completeMutation.isPending || lesson.completed || !lessonId}
               onClick={() => completeMutation.mutate()}
             >
-              {completeMutation.isPending ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : null}
-              {t("lesson.completeCta")}
+              {completeMutation.isPending ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              ) : null}
+              {lesson.completed ? t("lesson.completedCta") : t("lesson.completeCta")}
             </Button>
             {completeMutation.isSuccess ? (
               <p role="status" className="text-sm text-emerald-400">

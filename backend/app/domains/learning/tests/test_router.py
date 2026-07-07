@@ -116,6 +116,10 @@ async def test_list_tracks_returns_active_tracks(
     titles = [item["title"] for item in body["data"]]
     assert "Claude Chat" in titles
     assert str(track.id) in [item["id"] for item in body["data"]]
+    item = next(item for item in body["data"] if item["id"] == str(track.id))
+    assert item["total_lessons"] == 1
+    assert item["completed_lessons"] == 0
+    assert item["progress_percent"] == 0
 
 
 async def test_get_track_detail_requires_authentication(client_with_db: httpx.AsyncClient) -> None:
@@ -139,10 +143,14 @@ async def test_get_track_detail_returns_full_hierarchy(
     assert response.status_code == 200
     data = response.json()["data"]
     assert data["id"] == str(track.id)
+    assert data["total_lessons"] == 1
+    assert data["completed_lessons"] == 0
+    assert data["progress_percent"] == 0
     assert len(data["modules"]) == 1
     assert len(data["modules"][0]["levels"]) == 1
     assert len(data["modules"][0]["levels"][0]["lessons"]) == 1
     lesson = data["modules"][0]["levels"][0]["lessons"][0]
+    assert lesson["completed"] is False
     assert len(lesson["questions"]) == 1
     assert len(lesson["questions"][0]["alternatives"]) == 1
 

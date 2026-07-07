@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { BookOpen } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { TrackSummary } from "@/features/learning/types/learning"
@@ -21,6 +22,11 @@ const DIFFICULTY_COLOR: Record<string, string> = {
 
 export function TrackCard({ track }: TrackCardProps) {
   const { t } = useTranslation()
+  const progressLabel = t("tracks.progress", {
+    completed: track.completed_lessons,
+    total: track.total_lessons,
+    percent: track.progress_percent,
+  })
 
   return (
     <Card>
@@ -33,14 +39,29 @@ export function TrackCard({ track }: TrackCardProps) {
       <CardContent className="flex flex-col gap-3">
         <p className="line-clamp-2 text-sm text-muted-foreground">{track.description}</p>
         <div className="flex items-center justify-between text-sm">
-          <span className={cn("font-medium", DIFFICULTY_COLOR[track.difficulty] ?? "text-muted-foreground")}>
+          <span
+            className={cn(
+              "font-medium",
+              DIFFICULTY_COLOR[track.difficulty] ?? "text-muted-foreground"
+            )}
+          >
             {t(`tracks.difficulty.${track.difficulty}`, { defaultValue: track.difficulty })}
           </span>
           <span className="text-muted-foreground">
             {t("tracks.hours", { count: track.estimated_hours })}
           </span>
         </div>
-        <Link to={`/tracks/${track.id}`} className={cn(buttonVariants({ variant: "default" }), "w-full")}>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>{progressLabel}</span>
+            <span>{t("tracks.progressPercent", { percent: track.progress_percent })}</span>
+          </div>
+          <Progress value={track.progress_percent} aria-label={progressLabel} />
+        </div>
+        <Link
+          to={`/tracks/${track.id}`}
+          className={cn(buttonVariants({ variant: "default" }), "w-full")}
+        >
           {t("tracks.viewCta")}
         </Link>
       </CardContent>

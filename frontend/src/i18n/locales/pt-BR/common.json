@@ -83,6 +83,8 @@
     "empty": "Nenhuma trilha disponível no momento.",
     "hours": "{{count}}h",
     "modulesCount": "{{count}} módulos",
+    "progress": "{{completed}} de {{total}} missões concluídas",
+    "progressPercent": "{{percent}}%",
     "viewCta": "Ver trilha",
     "difficulty": {
       "beginner": "Iniciante",
@@ -99,7 +101,9 @@
     "modulesEmpty": "Esta trilha ainda não tem módulos publicados.",
     "level": "Nível {{number}}",
     "xp": "{{count}} XP",
-    "lessonsCount": "{{count}} missões"
+    "lessonsCount": "{{count}} missões",
+    "progress": "{{completed}} de {{total}} missões concluídas",
+    "progressPercent": "{{percent}}%"
   },
   "lesson": {
     "back": "Voltar para a trilha",
@@ -109,6 +113,8 @@
     "estimatedMinutes": "{{count}} min",
     "questionsTitle": "Questões",
     "completeCta": "Concluir missão",
+    "completedCta": "Missão concluída",
+    "completedBadge": "Concluída",
     "completeComingSoon": "O acompanhamento de progresso ainda não está disponível. Em breve!",
     "type": {
       "reading": "Leitura",

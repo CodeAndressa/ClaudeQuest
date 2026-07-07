@@ -4,6 +4,9 @@
   description: string
   difficulty: string
   estimated_hours: number
+  total_lessons: number
+  completed_lessons: number
+  progress_percent: number
   image: string | null
   icon: string | null
   order: number
@@ -38,6 +41,7 @@ export interface LessonDetail {
   order: number
   xp: number
   ai_corrected: boolean
+  completed: boolean
   questions: QuestionDetail[]
 }
 
@@ -67,6 +71,9 @@ export interface TrackDetail {
   description: string
   difficulty: string
   estimated_hours: number
+  total_lessons: number
+  completed_lessons: number
+  progress_percent: number
   image: string | null
   icon: string | null
   order: number

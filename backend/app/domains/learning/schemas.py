@@ -6,8 +6,6 @@ from pydantic import BaseModel, ConfigDict
 class TrackSummary(BaseModel):
     """Resumo de trilha usado na listagem (GET /api/v1/learning/tracks)."""
 
-    model_config = ConfigDict(from_attributes=True)
-
     id: uuid.UUID
     title: str
     description: str
@@ -16,6 +14,9 @@ class TrackSummary(BaseModel):
     image: str | None
     icon: str | None
     order: int
+    total_lessons: int
+    completed_lessons: int
+    progress_percent: int
 
 
 class AlternativeDetail(BaseModel):
@@ -41,8 +42,6 @@ class QuestionDetail(BaseModel):
 
 
 class LessonDetail(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
     id: uuid.UUID
     title: str
     description: str
@@ -53,6 +52,7 @@ class LessonDetail(BaseModel):
     order: int
     xp: int
     ai_corrected: bool
+    completed: bool
     questions: list[QuestionDetail]
 
 
@@ -83,8 +83,6 @@ class ModuleDetail(BaseModel):
 class TrackDetail(BaseModel):
     """Detalhe completo da trilha, com mÃ³dulos, nÃ­veis, missÃµes, questÃµes e alternativas."""
 
-    model_config = ConfigDict(from_attributes=True)
-
     id: uuid.UUID
     title: str
     description: str
@@ -94,6 +92,9 @@ class TrackDetail(BaseModel):
     icon: str | None
     order: int
     is_active: bool
+    total_lessons: int
+    completed_lessons: int
+    progress_percent: int
     modules: list[ModuleDetail]
 
 
