@@ -35,3 +35,26 @@ export interface RankingSummary {
   current_user: RankingUserEntry | null
   total_users: number
 }
+
+export type AchievementMetric =
+  | "lessons_completed"
+  | "streak_days"
+  | "total_xp"
+  | "badges_count"
+  | "certificates_count"
+
+export interface Achievement {
+  id: string
+  name: string
+  description: string
+  icon: string
+  metric: AchievementMetric
+  threshold: number
+}
+
+export interface UserAchievement {
+  id: string
+  achievement_id: string
+  achieved_at: string
+  achievement: Achievement
+}
