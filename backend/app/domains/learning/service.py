@@ -1,5 +1,9 @@
-﻿from uuid import UUID
+from uuid import UUID
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.domains.gamification.certificates import issue_completed_track_certificates
+from app.domains.gamification.quests import mark_lesson_progress_for_quests
 from app.domains.gamification.repository import XpLedgerRepository
 from app.domains.gamification.xp_rules import calculate_level, xp_to_next_level
 from app.domains.learning.model import Lesson, School, Track
@@ -41,12 +45,14 @@ class LearningService:
         lessons: LessonRepository,
         progress: LessonProgressRepository,
         xp_ledger: XpLedgerRepository,
+        session: AsyncSession | None = None,
     ) -> None:
         self._schools = schools
         self._tracks = tracks
         self._lessons = lessons
         self._progress = progress
         self._xp_ledger = xp_ledger
+        self._session = session if session is not None else getattr(progress, "_session", None)
 
     async def list_schools(self) -> list[SchoolSummary]:
         schools = await self._schools.list_active()
@@ -75,6 +81,11 @@ class LearningService:
             user_id=user_id, lesson_id=lesson_id
         )
         if existing is not None:
+            if self._session is not None:
+                await self._issue_track_certificate_if_completed(
+                    user_id=user_id,
+                    lesson_id=lesson_id,
+                )
             total_xp = await self._xp_ledger.get_total_xp(user_id)
             return CompleteLessonResponse(
                 lesson_id=lesson_id,
@@ -87,12 +98,26 @@ class LearningService:
             )
 
         xp_awarded = max(lesson.xp, 0)
-        await self._progress.create(user_id=user_id, lesson_id=lesson_id, xp_awarded=xp_awarded)
+        progress = await self._progress.create(
+            user_id=user_id, lesson_id=lesson_id, xp_awarded=xp_awarded
+        )
         if xp_awarded > 0:
             await self._xp_ledger.add_entry(
                 user_id=user_id,
                 amount=xp_awarded,
                 reason=f"lesson_completed:{lesson_id}",
+            )
+
+        if self._session is not None:
+            await mark_lesson_progress_for_quests(
+                self._session,
+                user_id=user_id,
+                lesson_id=lesson_id,
+                completed_at=progress.completed_at,
+            )
+            await self._issue_track_certificate_if_completed(
+                user_id=user_id,
+                lesson_id=lesson_id,
             )
 
         total_xp = await self._xp_ledger.get_total_xp(user_id)
@@ -106,6 +131,31 @@ class LearningService:
             xp_to_next_level=xp_to_next_level(total_xp),
         )
 
+    async def _issue_track_certificate_if_completed(
+        self, *, user_id: UUID, lesson_id: UUID
+    ) -> None:
+        if self._session is None:
+            return
+
+        track_id = await self._lessons.get_track_id_for_lesson(lesson_id)
+        if track_id is None:
+            return
+
+        track = await self._tracks.get_detail_by_id(track_id)
+        if track is None or not track.is_active:
+            return
+
+        completed_lesson_ids = await self._progress.list_completed_lesson_ids_for_user(user_id)
+        total_lessons, completed_lessons, _progress_percent = self._track_progress(
+            track, completed_lesson_ids
+        )
+        if total_lessons > 0 and completed_lessons == total_lessons:
+            await issue_completed_track_certificates(
+                self._session,
+                user_id=user_id,
+                track_id=track_id,
+            )
+
     @staticmethod
     def _build_school_summary(school: School) -> SchoolSummary:
         return SchoolSummary(
@@ -116,9 +166,7 @@ class LearningService:
             icon=school.icon,
             order=school.order,
             track_count=sum(
-                1
-                for track in school.tracks
-                if track.deleted_at is None and track.is_active
+                1 for track in school.tracks if track.deleted_at is None and track.is_active
             ),
         )
 
@@ -137,9 +185,7 @@ class LearningService:
         )
         return total_lessons, completed_lessons, progress_percent
 
-    def _build_track_summary(
-        self, track: Track, completed_lesson_ids: set[UUID]
-    ) -> TrackSummary:
+    def _build_track_summary(self, track: Track, completed_lesson_ids: set[UUID]) -> TrackSummary:
         total_lessons, completed_lessons, progress_percent = self._track_progress(
             track, completed_lesson_ids
         )
@@ -157,9 +203,7 @@ class LearningService:
             progress_percent=progress_percent,
         )
 
-    def _build_lesson_detail(
-        self, lesson: Lesson, completed_lesson_ids: set[UUID]
-    ) -> LessonDetail:
+    def _build_lesson_detail(self, lesson: Lesson, completed_lesson_ids: set[UUID]) -> LessonDetail:
         return LessonDetail(
             id=lesson.id,
             title=lesson.title,

@@ -23,7 +23,7 @@ Duas limitações deliberadas, documentadas aqui e no relatório final da tarefa
 
 import secrets
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
@@ -163,9 +163,32 @@ class CertificateRepository:
         result = await self._session.execute(statement)
         return result.scalar_one_or_none()
 
+    async def list_for_track(self, track_id: uuid.UUID) -> list[Certificate]:
+        statement = select(Certificate).where(
+            Certificate.track_id == track_id,
+            Certificate.deleted_at.is_(None),
+        )
+        result = await self._session.execute(statement)
+        return list(result.scalars().all())
+
+    async def get_issued(
+        self, *, certificate_id: uuid.UUID, user_id: uuid.UUID
+    ) -> UserCertificate | None:
+        statement = select(UserCertificate).where(
+            UserCertificate.certificate_id == certificate_id,
+            UserCertificate.user_id == user_id,
+            UserCertificate.deleted_at.is_(None),
+        )
+        result = await self._session.execute(statement)
+        return result.scalar_one_or_none()
+
     async def issue(
         self, *, certificate_id: uuid.UUID, user_id: uuid.UUID, issued_at: datetime
     ) -> UserCertificate:
+        existing = await self.get_issued(certificate_id=certificate_id, user_id=user_id)
+        if existing is not None:
+            return existing
+
         user_certificate = UserCertificate(
             certificate_id=certificate_id,
             user_id=user_id,
@@ -208,6 +231,24 @@ class CertificateRepository:
         if row is None:
             return None
         return row.UserCertificate, row.Certificate
+
+
+async def issue_completed_track_certificates(
+    session: AsyncSession, *, user_id: uuid.UUID, track_id: uuid.UUID
+) -> list[UserCertificate]:
+    """Emite certificados de uma trilha concluída, sem duplicar emissões existentes."""
+
+    repository = CertificateRepository(session)
+    certificates = await repository.list_for_track(track_id)
+    issued: list[UserCertificate] = []
+    for certificate in certificates:
+        user_certificate = await repository.issue(
+            certificate_id=certificate.id,
+            user_id=user_id,
+            issued_at=datetime.now(UTC),
+        )
+        issued.append(user_certificate)
+    return issued
 
 
 class UserLookupRepository:

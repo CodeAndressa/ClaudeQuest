@@ -1,4 +1,4 @@
-﻿from typing import Annotated
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Request
@@ -36,6 +36,7 @@ def get_learning_service(
         LessonRepository(session),
         LessonProgressRepository(session),
         XpLedgerRepository(session),
+        session=session,
     )
 
 

@@ -1,4 +1,4 @@
-﻿from datetime import UTC, datetime
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -78,6 +78,21 @@ class LessonRepository:
 
     async def get_by_id(self, lesson_id: UUID) -> Lesson | None:
         statement = select(Lesson).where(Lesson.id == lesson_id, Lesson.deleted_at.is_(None))
+        result = await self._session.execute(statement)
+        return result.scalar_one_or_none()
+
+    async def get_track_id_for_lesson(self, lesson_id: UUID) -> UUID | None:
+        statement = (
+            select(Module.track_id)
+            .join(Level, Level.module_id == Module.id)
+            .join(Lesson, Lesson.level_id == Level.id)
+            .where(
+                Lesson.id == lesson_id,
+                Lesson.deleted_at.is_(None),
+                Level.deleted_at.is_(None),
+                Module.deleted_at.is_(None),
+            )
+        )
         result = await self._session.execute(statement)
         return result.scalar_one_or_none()
 

@@ -1,9 +1,23 @@
 import uuid
+from datetime import UTC, datetime
 
 import pytest
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.domains.gamification.certificates import Certificate, UserCertificate
+from app.domains.gamification.quests import (
+    DailyMission,
+    DailyMissionLesson,
+    WeeklyMission,
+    WeeklyMissionLesson,
+)
 from app.domains.gamification.repository import XpLedgerRepository
+from app.domains.gamification.xp_rules import (
+    BASE_XP_BY_DIFFICULTY,
+    DAILY_MISSION_BONUS,
+    Difficulty,
+)
 from app.domains.learning.model import Lesson, Level, Module, School, Track
 from app.domains.learning.repository import (
     LessonProgressRepository,
@@ -24,8 +38,8 @@ def _build_service(session: AsyncSession) -> LearningService:
         LessonRepository(session),
         LessonProgressRepository(session),
         XpLedgerRepository(session),
+        session=session,
     )
-
 
 
 async def _create_user(
@@ -73,6 +87,27 @@ async def _create_track(session: AsyncSession, *, is_active: bool = True) -> Tra
     session.add(track)
     await session.flush()
     return track
+
+
+async def _create_lesson(session: AsyncSession, *, xp: int = 35) -> Lesson:
+    track = await _create_track(session)
+    module = Module(track_id=track.id, title="Interface", description="Basico", order=1)
+    session.add(module)
+    await session.flush()
+    level = Level(module_id=module.id, title="Nivel 1", description="Intro", level_number=1)
+    session.add(level)
+    await session.flush()
+    lesson = Lesson(
+        level_id=level.id,
+        title="Missao 1",
+        description="Primeira missao",
+        content="Conteudo",
+        order=1,
+        xp=xp,
+    )
+    session.add(lesson)
+    await session.flush()
+    return lesson
 
 
 async def test_list_tracks_returns_active_tracks(db_session: AsyncSession) -> None:
@@ -190,6 +225,121 @@ async def test_complete_lesson_awards_xp_once(db_session: AsyncSession) -> None:
     assert track_detail.modules[0].levels[0].lessons[0].completed is True
     assert track_summary.completed_lessons == 1
     assert track_summary.progress_percent == 100
+
+
+async def test_complete_lesson_updates_quests_and_bonus_xp(
+    db_session: AsyncSession,
+) -> None:
+    lesson = await _create_lesson(db_session, xp=40)
+    user = await _create_user(db_session, email="learner-service-quests@claudequest.dev")
+    now = datetime.now(UTC)
+    iso = now.isocalendar()
+    level = await db_session.get(Level, lesson.level_id)
+    assert level is not None
+    daily_mission = DailyMission(user_id=user.id, mission_date=now.date())
+    db_session.add(daily_mission)
+    await db_session.flush()
+    daily_item = DailyMissionLesson(
+        daily_mission_id=daily_mission.id,
+        lesson_id=lesson.id,
+    )
+    weekly_mission = WeeklyMission(
+        user_id=user.id,
+        iso_year=iso.year,
+        iso_week=iso.week,
+        module_id=level.module_id,
+    )
+    db_session.add_all([daily_item, weekly_mission])
+    await db_session.flush()
+    weekly_item = WeeklyMissionLesson(
+        weekly_mission_id=weekly_mission.id,
+        lesson_id=lesson.id,
+    )
+    db_session.add(weekly_item)
+    await db_session.flush()
+    service = _build_service(db_session)
+
+    result = await service.complete_lesson(user_id=user.id, lesson_id=lesson.id)
+    daily_completed = await db_session.scalar(
+        select(DailyMissionLesson.completed).where(DailyMissionLesson.id == daily_item.id)
+    )
+    weekly_completed = await db_session.scalar(
+        select(WeeklyMissionLesson.completed).where(WeeklyMissionLesson.id == weekly_item.id)
+    )
+    weekly_bonus_awarded = await db_session.scalar(
+        select(WeeklyMission.bonus_awarded).where(WeeklyMission.id == weekly_mission.id)
+    )
+
+    expected_daily_bonus = round(lesson.xp * DAILY_MISSION_BONUS)
+    expected_weekly_bonus = BASE_XP_BY_DIFFICULTY[Difficulty.DIFICIL]
+    assert result.xp_granted == lesson.xp
+    assert result.total_xp == lesson.xp + expected_daily_bonus + expected_weekly_bonus
+    assert daily_completed is True
+    assert weekly_completed is True
+    assert weekly_bonus_awarded is True
+
+
+async def test_complete_lesson_issues_certificate_when_track_is_completed(
+    db_session: AsyncSession,
+) -> None:
+    track = await _create_track(db_session)
+    module = Module(track_id=track.id, title="Certificacao", description="Basico", order=1)
+    db_session.add(module)
+    await db_session.flush()
+    level = Level(module_id=module.id, title="Nivel 1", description="Intro", level_number=1)
+    db_session.add(level)
+    await db_session.flush()
+    first_lesson = Lesson(
+        level_id=level.id,
+        title="Missao 1",
+        description="Primeira missao",
+        content="Conteudo",
+        order=1,
+        xp=10,
+    )
+    final_lesson = Lesson(
+        level_id=level.id,
+        title="Missao 2",
+        description="Ultima missao",
+        content="Conteudo",
+        order=2,
+        xp=10,
+    )
+    certificate = Certificate(
+        track_id=track.id,
+        title="Certificado Claude Code",
+        hours=track.estimated_hours,
+    )
+    db_session.add_all([first_lesson, final_lesson, certificate])
+    await db_session.flush()
+    service = _build_service(db_session)
+    user = await _create_user(db_session, email="learner-service-certificate@claudequest.dev")
+
+    await service.complete_lesson(user_id=user.id, lesson_id=first_lesson.id)
+    before_completion = await db_session.scalar(
+        select(UserCertificate).where(
+            UserCertificate.user_id == user.id,
+            UserCertificate.certificate_id == certificate.id,
+        )
+    )
+    await service.complete_lesson(user_id=user.id, lesson_id=final_lesson.id)
+    after_completion = await db_session.scalar(
+        select(UserCertificate).where(
+            UserCertificate.user_id == user.id,
+            UserCertificate.certificate_id == certificate.id,
+        )
+    )
+    await service.complete_lesson(user_id=user.id, lesson_id=final_lesson.id)
+    issued_count = await db_session.scalar(
+        select(func.count()).where(
+            UserCertificate.user_id == user.id,
+            UserCertificate.certificate_id == certificate.id,
+        )
+    )
+
+    assert before_completion is None
+    assert after_completion is not None
+    assert issued_count == 1
 
 
 async def test_complete_lesson_raises_when_not_found(db_session: AsyncSession) -> None:
