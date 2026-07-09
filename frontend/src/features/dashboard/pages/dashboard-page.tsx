@@ -9,6 +9,7 @@ import { RankingCard } from "@/features/dashboard/components/ranking-card"
 import { NextLessonCard } from "@/features/dashboard/components/next-lesson-card"
 import { BadgesCard } from "@/features/dashboard/components/badges-card"
 import { CertificatesCard } from "@/features/dashboard/components/certificates-card"
+import { AchievementsCard } from "@/features/dashboard/components/achievements-card"
 import { DashboardSkeleton } from "@/features/dashboard/components/dashboard-skeleton"
 import { Button } from "@/components/ui/button"
 
@@ -46,6 +47,7 @@ export function DashboardPage() {
           <NextLessonCard nextLesson={data.next_lesson} />
           <BadgesCard />
           <CertificatesCard />
+          <AchievementsCard />
         </div>
       )}
     </div>

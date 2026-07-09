@@ -5,6 +5,7 @@ autogenerate do Alembic. Cada novo domÃ­nio adiciona sua linha aqui.
 
 from app.domains.auth.model import Session  # noqa: F401
 from app.domains.auth.password_reset import PasswordResetToken  # noqa: F401
+from app.domains.gamification.achievements import Achievement, UserAchievement  # noqa: F401
 from app.domains.gamification.badges import Badge, UserBadge  # noqa: F401
 from app.domains.gamification.certificates import Certificate, UserCertificate  # noqa: F401
 from app.domains.gamification.events import Event  # noqa: F401

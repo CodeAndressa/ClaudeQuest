@@ -77,6 +77,8 @@
   "dashboard.badges.comingSoon": "You'll soon be able to earn badges here.",
   "dashboard.certificates.title": "Certificates",
   "dashboard.certificates.comingSoon": "You'll soon be able to earn certificates here.",
+  "dashboard.achievements.title": "Achievements",
+  "dashboard.achievements.comingSoon": "You'll be able to earn achievements here soon.",
   "admin.title": "Admin Portal",
   "admin.subtitle": "ClaudeQuest's operational center for preparing user, content, gamification, AI, and analytics management without direct database access.",
   "admin.readiness.title": "First admin slice",
