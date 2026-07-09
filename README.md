@@ -14,7 +14,7 @@ a fonte de verdade, não este README.
 |---|---|
 | Backend | Python 3.13, FastAPI, SQLAlchemy 2 (async), Alembic, Pydantic v2, PyJWT, Argon2, Structlog |
 | Frontend | React 19, TypeScript, Vite, TailwindCSS v4, shadcn/ui, TanStack Query, Zustand, React Hook Form + Zod, Framer Motion, i18next, React Router |
-| Banco | PostgreSQL 17 |
+| Banco | SQLite (arquivo local, sem serviço/Docker) |
 | Testes | Pytest (backend), Vitest + Testing Library (frontend), Playwright (e2e) |
 | CI/CD | GitHub Actions, Vercel (frontend) |
 
@@ -35,13 +35,12 @@ ClaudeQuest/
 
 ## Setup local
 
-Pré-requisitos: Python 3.13+, [uv](https://docs.astral.sh/uv/), Node 22+, Docker.
+Pré-requisitos: Python 3.13+, [uv](https://docs.astral.sh/uv/), Node 22+.
+Não é necessário Docker — o banco é um arquivo SQLite local, criado automaticamente
+pelo Alembic (ver ADR sobre a troca de PostgreSQL para SQLite).
 
 ```bash
 cp .env.example .env
-
-# Banco de dados
-docker compose up -d db
 
 # Backend — roda em http://localhost:8002
 cd backend
@@ -67,10 +66,11 @@ npm run dev
 
 ## Testes
 
-A suíte de testes do backend usa um banco **separado** do banco de desenvolvimento
-(`claudequest_test`, ver `TEST_DATABASE_URL` no `.env.example`) — nunca rode os testes
-apontando para o mesmo banco que o Alembic gerencia. O `docker compose up -d db` já cria
-os dois bancos automaticamente (via `docker/postgres/init-test-db.sh`).
+A suíte de testes do backend usa um arquivo SQLite **separado** do banco de
+desenvolvimento (`claudequest_test.db`, ver `TEST_DATABASE_URL` no `.env.example`) —
+nunca rode os testes apontando para o mesmo arquivo que o Alembic gerencia. Ambos os
+arquivos `.db` são criados automaticamente (o de teste, pelo fixture `db_engine`; o de
+dev, pelo `alembic upgrade head`) e nunca são versionados (ver `.gitignore`).
 
 Cada domínio do backend mantém seus próprios testes em `app/domains/<dominio>/tests/`;
 testes de infraestrutura compartilhada (config, logging, middlewares) ficam em `backend/tests/`.

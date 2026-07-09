@@ -12,21 +12,6 @@ jobs:
     defaults:
       run:
         working-directory: backend
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_USER: claudequest
-          POSTGRES_PASSWORD: claudequest
-          POSTGRES_DB: claudequest_test
-        ports: ["5432:5432"]
-        options: >-
-          --health-cmd "pg_isready -U claudequest"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      TEST_DATABASE_URL: postgresql+asyncpg://claudequest:claudequest@localhost:5432/claudequest_test
     steps:
       - uses: actions/checkout@v4
 
@@ -90,19 +75,6 @@ jobs:
     name: End-to-end (Playwright)
     runs-on: ubuntu-latest
     needs: [backend, frontend]
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_USER: claudequest
-          POSTGRES_PASSWORD: claudequest
-          POSTGRES_DB: claudequest
-        ports: ["5432:5432"]
-        options: >-
-          --health-cmd "pg_isready -U claudequest"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
     steps:
       - uses: actions/checkout@v4
 
@@ -126,8 +98,6 @@ jobs:
 
       - name: Start backend
         working-directory: backend
-        env:
-          DATABASE_URL: postgresql+asyncpg://claudequest:claudequest@localhost:5432/claudequest
         run: |
           uv run alembic upgrade head
           uv run python scripts/seed_demo_data.py

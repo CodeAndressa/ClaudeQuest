@@ -47,7 +47,8 @@ class DashboardRepository:
             .order_by(xp_date.desc())
         )
         result = await self._session.execute(statement)
-        return list(result.scalars().all())
+        raw_dates = result.scalars().all()
+        return [d if isinstance(d, date) else date.fromisoformat(d) for d in raw_dates]
 
     async def get_ranking_position(self, user_id: UUID) -> int | None:
         """PosiÃ§Ã£o (1-based) do usuÃ¡rio no ranking global por XP total (desc).

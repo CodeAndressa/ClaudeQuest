@@ -43,8 +43,13 @@ arquitetura e decisão vive no Vault do Obsidian em
   revertida ao final) contra `TEST_DATABASE_URL` — nunca o banco de dev. Para testar
   endpoints que dependem de banco, use a fixture `client_with_db` (que é um
   `httpx.AsyncClient`, não o `TestClient` síncrono do FastAPI — o `TestClient` roda a
-  app numa thread com event loop próprio e quebra ao compartilhar uma conexão asyncpg
+  app numa thread com event loop próprio e quebra ao compartilhar uma conexão SQLite
   real com o setup do teste).
+- **Banco é SQLite** (arquivo local via `aiosqlite`, sem serviço/Docker — ver ADR de
+  migração de PostgreSQL para SQLite). Tipos de coluna UUID usam `sqlalchemy.Uuid`
+  (genérico, nunca `sqlalchemy.dialects.postgresql.UUID`) e `server_default` de data usa
+  `func.now()`/`CURRENT_TIMESTAMP` (nunca `sa.text('now()')`, que é sintaxe só de Postgres).
+  Migrations do Alembic usam `render_as_batch=True` (necessário para `ALTER TABLE` no SQLite).
 - **Sem tela de cadastro**: usuários nascem via `backend/scripts/seed_demo_data.py` ou,
   futuramente, pelo Admin (ADMIN-001). Nunca criar um endpoint de self-signup sem
   isso estar no backlog.
@@ -53,7 +58,8 @@ arquitetura e decisão vive no Vault do Obsidian em
 
 - Backend: `localhost:8002` (prefixo de API `/api/v1`).
 - Frontend (Vite dev server): `localhost:5180` — porta não-padrão, ver README.
-- Postgres: `localhost:5432` via `docker compose up -d db`.
+- Banco: SQLite local (`backend/claudequest.db`), criado por `alembic upgrade head` —
+  sem serviço para manter no ar.
 
 ## Comandos úteis
 

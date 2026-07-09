@@ -20,12 +20,8 @@ class Settings(BaseSettings):
     app_url: str = "http://localhost:8002"
     frontend_url: str = "http://localhost:5180"
 
-    database_url: str = Field(
-        default="postgresql+asyncpg://claudequest:claudequest@localhost:5432/claudequest"
-    )
-    test_database_url: str = Field(
-        default="postgresql+asyncpg://claudequest:claudequest@localhost:5432/claudequest_test"
-    )
+    database_url: str = Field(default="sqlite+aiosqlite:///./claudequest.db")
+    test_database_url: str = Field(default="sqlite+aiosqlite:///./claudequest_test.db")
 
     jwt_secret: str = Field(default="change-me-in-env")
     jwt_algorithm: str = "HS256"

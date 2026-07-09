@@ -32,7 +32,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from sqlalchemy import DateTime, Enum, ForeignKey, UniqueConstraint, select
-from sqlalchemy.dialects.postgresql import UUID as PGUUID
+from sqlalchemy import Uuid as PGUUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 

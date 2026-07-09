@@ -14,6 +14,16 @@ __pycache__/
 .coverage
 htmlcov/
 
+# Banco de dados local (SQLite)
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Logs locais de dev
+backend/uvicorn.out.log
+backend/uvicorn.err.log
+
 # Node / Frontend
 node_modules/
 dist/
