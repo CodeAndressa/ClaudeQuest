@@ -31,3 +31,8 @@ Thumbs.db
 
 # Vercel
 .vercel/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
