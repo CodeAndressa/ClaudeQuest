@@ -1,7 +1,7 @@
 """Ligas (GAME-007).
 
 Reúne, num único arquivo, model + repository + service + schemas + router das
-Ligas — mesma decisão deliberada já tomada em `badges.py` e `certificates.py`:
+Ligas - mesma decisão deliberada já tomada em `badges.py` e `certificates.py`:
 minimizar conflito de merge com outras tarefas em andamento em paralelo na
 mesma pasta (Missões Diárias/Semanais e Eventos, cada uma em seu próprio
 arquivo novo).
@@ -21,13 +21,13 @@ Resumo das regras implementadas:
 - Usuário 14+ dias consecutivos sem completar nenhuma missão é excluído do
   cálculo de promoção/rebaixamento daquela semana (não sobe nem desce).
 - Desempate: mesmo critério do Ranking Global (`app.domains.gamification.
-  ranking`) — menor `user_id` primeiro.
+  ranking`) - menor `user_id` primeiro.
 
 Duas decisões de design deliberadas, documentadas aqui e no relatório final da
 tarefa:
 
 1. **Processamento preguiçoso (lazy), sem job agendado.** Não existe nenhum
-   scheduler no projeto (sem cron, sem Celery, sem APScheduler) — o mesmo
+   scheduler no projeto (sem cron, sem Celery, sem APScheduler) - o mesmo
    padrão já usado para streak e ranking (`app.domains.dashboard.repository`),
    calculados em runtime a partir de dados existentes. Aqui, cada vez que
    `GET /gamification/me/league` é chamado, o backend compara a semana ISO
@@ -37,16 +37,16 @@ tarefa:
    corte é acionado por usuário (não por um job único que fecha o grupo
    inteiro de uma vez), o grupo pode ficar temporariamente com membros em
    "semanas processadas" diferentes até que cada um chame o endpoint pelo
-   menos uma vez após a virada da semana — trade-off aceitável na ausência de
+   menos uma vez após a virada da semana - trade-off aceitável na ausência de
    um scheduler, e sem impacto de correção: cada usuário sempre é avaliado
    contra o ranking do grupo vigente no momento em que sua própria virada de
    semana é detectada.
 2. **Sem concessão automática de badge de liga.** A documentação sugere que
-   subir de liga concede um badge (ex. "Ouro — Temporada 1"). Como o catálogo
+   subir de liga concede um badge (ex. "Ouro - Temporada 1"). Como o catálogo
    de badges (`app.domains.gamification.badges`) não tem, nesta entrega,
    nenhuma entrada semeada especificamente para promoções de liga, e a tarefa
    marca essa concessão como opcional/não obrigatória, este módulo não
-   concede badge nenhum ao promover — apenas registra a mudança de liga. Fica
+   concede badge nenhum ao promover - apenas registra a mudança de liga. Fica
    para uma entrega futura, quando o catálogo de badges de liga existir.
 """
 
@@ -78,7 +78,7 @@ from app.shared.schemas import SuccessResponse
 # --------------------------------------------------------------------------- #
 #
 # Ver docstring do módulo / Vault ("Ligas e Rankings.md.md") para o racional
-# de cada valor — todos vêm diretamente do documento, não são estimativas.
+# de cada valor - todos vêm diretamente do documento, não são estimativas.
 
 GROUP_SIZE = 30
 PROMOTION_COUNT = 5
@@ -98,7 +98,7 @@ class League(enum.StrEnum):
     LEGEND = "legend"
 
 
-# Ordem crescente das ligas — usada para determinar a próxima/anterior liga na
+# Ordem crescente das ligas - usada para determinar a próxima/anterior liga na
 # promoção/rebaixamento. Não é a ordem de declaração do enum (que o Python já
 # preserva), mas uma constante explícita para deixar a regra auditável sem
 # depender de detalhe de implementação do enum.
@@ -130,11 +130,11 @@ def previous_league(league: League) -> League:
 def determine_new_league(*, position: int, total: int, league: League) -> League:
     """Aplica a regra de corte semanal a uma posição (0-based) dentro do grupo.
 
-    Função pura — recebe apenas a posição já ordenada e o tamanho do grupo
+    Função pura - recebe apenas a posição já ordenada e o tamanho do grupo
     ativo (usuários congelados por inatividade já removidos por quem chama),
     não faz I/O. `position < PROMOTION_COUNT` é checado antes do
     rebaixamento de propósito: num grupo com 5 membros ou menos, todos
-    ocupam simultaneamente o "Top 5" e os "últimos 5" — a promoção tem
+    ocupam simultaneamente o "Top 5" e os "últimos 5" - a promoção tem
     prioridade, para não deixar o único/poucos competidores presos numa
     liga por um empate estrutural entre as duas regras.
     """
@@ -152,7 +152,7 @@ def is_inactive(
     """Verdadeiro se o usuário está há `INACTIVITY_DAYS`+ dias sem completar missão.
 
     Quando o usuário nunca completou nenhuma missão (`last_activity_at is
-    None`), a referência é `entered_league_at` — um usuário recém-entrado não
+    None`), a referência é `entered_league_at` - um usuário recém-entrado não
     é considerado inativo apenas por ainda não ter concluído nada no mesmo
     instante em que entrou.
     """
@@ -167,19 +167,19 @@ def is_inactive(
 
 
 class UserLeague(AuditedModel):
-    """Liga atual de um usuário — cada usuário tem, no máximo, um registro ativo.
+    """Liga atual de um usuário - cada usuário tem, no máximo, um registro ativo.
 
     `group_number` identifica o grupo (até `GROUP_SIZE` usuários) dentro da
     liga atual; grupos são formados por ordem de entrada (`entered_league_at`,
-    com `user_id` como desempate estável) — ver `LeagueRepository.
+    com `user_id` como desempate estável) - ver `LeagueRepository.
     find_available_group`. `last_processed_iso_year`/`last_processed_iso_week`
     guardam a última semana ISO (`datetime.isocalendar()`) para a qual a
-    promoção/rebaixamento deste usuário já foi calculada — ver docstring do
+    promoção/rebaixamento deste usuário já foi calculada - ver docstring do
     módulo sobre o processamento preguiçoso.
 
     Não há coluna própria de "última atividade": ela é derivada, sob demanda,
     de `UserLessonProgress.completed_at` (ver `LeagueRepository.
-    get_last_activity_map`) — a mesma fonte que já registra conclusão de
+    get_last_activity_map`) - a mesma fonte que já registra conclusão de
     missão em `app.domains.learning`, evitando manter dois lugares
     sincronizados para o mesmo fato.
     """
@@ -312,7 +312,7 @@ class LeagueRepository:
         """Data/hora da última missão concluída por usuário, entre os IDs informados.
 
         Usuários sem nenhuma linha em `UserLessonProgress` simplesmente não
-        aparecem no dicionário retornado — quem chama trata a ausência como
+        aparecem no dicionário retornado - quem chama trata a ausência como
         `None` (ver `is_inactive`).
         """
 
@@ -375,7 +375,7 @@ class LeagueService:
     Recebe `RankingRepository` (de `app.domains.gamification.ranking`) em vez
     de recalcular pontuação: a regra de desempate/pontuação do corte de liga é
     explicitamente "o mesmo critério do Ranking Global" (Vault, seção
-    "Promoção e rebaixamento") — reusar a mesma fonte garante que as duas
+    "Promoção e rebaixamento") - reusar a mesma fonte garante que as duas
     telas nunca divirjam sobre o score de um usuário.
     """
 

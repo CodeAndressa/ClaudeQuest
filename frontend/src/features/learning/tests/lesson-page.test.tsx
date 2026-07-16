@@ -150,7 +150,7 @@ describe("LessonPage", () => {
     renderPage()
 
     await waitFor(() => {
-      expect(screen.getByText("Primeira missão")).toBeInTheDocument()
+      expect(screen.getByRole("heading", { name: "Primeira missão" })).toBeInTheDocument()
     })
 
     expect(screen.getByText("Concluída")).toBeInTheDocument()
@@ -167,8 +167,12 @@ describe("LessonPage", () => {
       expect(screen.getByText("Qual comando inicia o backend?")).toBeInTheDocument()
     })
 
-    expect(screen.queryByText("Isso mesmo! Esse é o comando usado no projeto.")).not.toBeInTheDocument()
-    expect(screen.queryByText("Esse comando sobe o frontend, não o backend.")).not.toBeInTheDocument()
+    expect(
+      screen.queryByText("Isso mesmo! Esse é o comando usado no projeto.")
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByText("Esse comando sobe o frontend, não o backend.")
+    ).not.toBeInTheDocument()
     expect(screen.queryByText("O backend roda com uvicorn na porta 8002.")).not.toBeInTheDocument()
 
     const options = screen.getAllByRole("radio")
@@ -241,7 +245,9 @@ describe("LessonPage", () => {
 
     render(
       <I18nextProvider i18n={i18n}>
-        <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <QueryClientProvider
+          client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+        >
           <MemoryRouter initialEntries={["/tracks/track-1/lessons/lesson-inexistente"]}>
             <Routes>
               <Route path="/tracks/:trackId/lessons/:lessonId" element={<LessonPage />} />
@@ -277,7 +283,7 @@ describe("LessonPage", () => {
     renderPage()
 
     await waitFor(() => {
-      expect(screen.getByText("Primeira missão")).toBeInTheDocument()
+      expect(screen.getByRole("heading", { name: "Primeira missão" })).toBeInTheDocument()
     })
 
     await userEvent.click(
@@ -301,7 +307,7 @@ describe("LessonPage", () => {
     renderPage()
 
     await waitFor(() => {
-      expect(screen.getByText("Primeira missão")).toBeInTheDocument()
+      expect(screen.getByRole("heading", { name: "Primeira missão" })).toBeInTheDocument()
     })
 
     expect(screen.getByRole("button", { name: /concluir missão/i })).toBeDisabled()
@@ -326,7 +332,7 @@ describe("LessonPage", () => {
     renderPage()
 
     await waitFor(() => {
-      expect(screen.getByText("Primeira missão")).toBeInTheDocument()
+      expect(screen.getByRole("heading", { name: "Primeira missão" })).toBeInTheDocument()
     })
 
     await userEvent.click(

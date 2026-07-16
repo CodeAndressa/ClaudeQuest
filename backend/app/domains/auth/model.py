@@ -10,7 +10,7 @@ from app.database.base import AuditedModel
 
 class Session(AuditedModel):
     """
-    Sessão de autenticação (refresh token) — resolve a lacuna apontada na auditoria
+    Sessão de autenticação (refresh token) - resolve a lacuna apontada na auditoria
     de documentação: ADR-007 exige "sessões auditáveis", mas o Database Specification
     original não previa esta tabela.
     """

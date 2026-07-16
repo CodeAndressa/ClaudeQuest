@@ -26,7 +26,7 @@ export function PrivateLayout() {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <aside className="hidden md:block md:w-64 md:shrink-0">
+      <aside className="hidden md:block md:w-[228px] md:shrink-0">
         <Sidebar />
       </aside>
 

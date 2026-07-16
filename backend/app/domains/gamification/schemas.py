@@ -20,7 +20,7 @@ class GrantXpRequest(BaseModel):
         admin ajustando XP manualmente, ou uma integração que já sabe o
         valor final).
       - `difficulty` (+ flags de multiplicador): a interface que a futura
-        feature de Missões vai usar — ela só sabe "essa missão era Difícil,
+        feature de Missões vai usar - ela só sabe "essa missão era Difícil,
         foi na primeira tentativa", não o valor de XP resultante.
     """
 

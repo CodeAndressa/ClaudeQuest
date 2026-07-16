@@ -1,14 +1,14 @@
 """Missões Diárias e Semanais (GAME-008).
 
 Reúne, num único arquivo, models + repository + service + schemas + router das
-duas mecânicas — decisão deliberada para minimizar sobreposição com os outros
+duas mecânicas - decisão deliberada para minimizar sobreposição com os outros
 arquivos novos sendo criados em paralelo no mesmo diretório (Ligas, Eventos),
 cada um em seu próprio módulo. Mesmo padrão já usado em
 `app/domains/gamification/badges.py`, `certificates.py` e `events.py`.
 
 Fonte de verdade das regras de negócio: Vault do Obsidian,
 `G:\\Meu Drive\\Obsidian\\ClaudeLinguo\\08 - Gamification\\Missões Diárias,
-Semanais e Eventos.md.md` (seções "Missões Diárias" e "Missões Semanais" — a
+Semanais e Eventos.md.md` (seções "Missões Diárias" e "Missões Semanais" - a
 seção "Eventos" desse mesmo documento é escopo de outra tarefa, ver
 `app/domains/gamification/events.py`).
 
@@ -29,7 +29,7 @@ corrente" é o ano+semana ISO de `datetime.now(UTC).isocalendar()`.
 
 1. **Sem noção de "competência"/"força relativa".** A documentação pede que a
    missão de revisão diária priorize competências mais fracas (barra de
-   progresso de competência). Essa entidade não existe no projeto — não há
+   progresso de competência). Essa entidade não existe no projeto - não há
    tabela de competências nem de tentativas por competência. Como proxy
    razoável (mesmo espírito: reforçar o que foi aprendido há mais tempo),
    selecionamos as missões concluídas há mais tempo primeiro
@@ -45,7 +45,7 @@ corrente" é o ano+semana ISO de `datetime.now(UTC).isocalendar()`.
    inventar uma seleção sem fonte de dados real. Fica para quando existir uma
    entidade de Laboratório de primeira classe.
 3. **Integração de XP com `LearningService.complete_lesson` fica pendente.**
-   Ver docstring de `mark_lesson_progress_for_quests` abaixo — é o ponto de
+   Ver docstring de `mark_lesson_progress_for_quests` abaixo - é o ponto de
    extensão pronto para ser plugado ali numa integração futura, deliberadamente
    adiada para não editar `app/domains/learning/service.py`/`router.py` em
    paralelo com outras tarefas tocando os mesmos arquivos.
@@ -79,13 +79,13 @@ from app.shared.schemas import SuccessResponse
 # Constantes de seleção
 # --------------------------------------------------------------------------- #
 
-# "conjunto pequeno (3) de missões" — ver seção "Missões Diárias" > "Definição".
+# "conjunto pequeno (3) de missões" - ver seção "Missões Diárias" > "Definição".
 DAILY_MISSION_TARGET_COUNT = 3
 
-# "sempre múltiplo (2 a 4 missões...)" — ver seção "Missões Semanais" > "Definição".
+# "sempre múltiplo (2 a 4 missões...)" - ver seção "Missões Semanais" > "Definição".
 # O limite inferior de 2 não é imposto como filtro: se o módulo mais próximo da
 # conclusão tiver só 1 lição restante, ainda geramos a missão com 1 (preferível
-# a bloquear o aluno — alinhado ao princípio "nunca punir" de Gamification.md.md).
+# a bloquear o aluno - alinhado ao princípio "nunca punir" de Gamification.md.md).
 WEEKLY_MISSION_MAX_LESSONS = 4
 
 
@@ -97,7 +97,7 @@ WEEKLY_MISSION_MAX_LESSONS = 4
 class DailyMission(AuditedModel):
     """A seleção de missões diárias de um usuário para um dia específico.
 
-    Um único registro por (usuário, dia) — a unicidade garante que a leitura
+    Um único registro por (usuário, dia) - a unicidade garante que a leitura
     preguiçosa nunca gere duas seleções diferentes no mesmo dia por corrida
     entre requisições concorrentes (a segunda simplesmente encontra a primeira
     já persistida).
@@ -153,7 +153,7 @@ class WeeklyMission(AuditedModel):
 
     Um único registro por (usuário, ano ISO, semana ISO). `bonus_awarded`
     controla a concessão única do bônus de conclusão do conjunto completo (ver
-    `mark_lesson_progress_for_quests`) — sem essa flag, um reprocessamento
+    `mark_lesson_progress_for_quests`) - sem essa flag, um reprocessamento
     acidental poderia conceder o bônus mais de uma vez.
     """
 
@@ -268,7 +268,7 @@ class WeeklyMissionResponse(BaseModel):
 _WEEKLY_MISSION_UNAVAILABLE = AppError(
     code="weekly_mission_unavailable",
     message=(
-        "Não há um módulo elegível para gerar a missão semanal — todo o "
+        "Não há um módulo elegível para gerar a missão semanal - todo o "
         "conteúdo disponível já foi concluído."
     ),
     status_code=404,
@@ -327,7 +327,7 @@ class DailyMissionRepository:
         Retorna `True` apenas na transição `False -> True` (a lição de fato
         fazia parte da missão e ainda não estava concluída). Retorna `False`
         quando a lição não pertence a esta missão diária ou já estava
-        concluída — em ambos os casos, nenhum efeito colateral (ex.: bônus de
+        concluída - em ambos os casos, nenhum efeito colateral (ex.: bônus de
         XP) deve ser aplicado por quem chama.
         """
 
@@ -435,7 +435,7 @@ class QuestCatalogReadRepository:
 
         Mesma lógica/ordem de `app.domains.dashboard.repository.
         DashboardRepository.get_next_incomplete_lesson` (catálogo -> módulo ->
-        nível -> lição), duplicada deliberadamente em vez de importada — ver
+        nível -> lição), duplicada deliberadamente em vez de importada - ver
         docstring da classe.
         """
 
@@ -545,7 +545,7 @@ class QuestService:
         concluídas, mais antigas primeiro).
 
         Nunca repete a mesma lição de revisão do dia anterior enquanto houver
-        alternativa — mas prefere repetir (em vez de entregar menos de 3
+        alternativa - mas prefere repetir (em vez de entregar menos de 3
         missões) quando não há alternativa, alinhado ao princípio "nunca
         punir" (a regra de "não repetir" é uma preferência de variedade, não
         uma penalidade).
@@ -704,20 +704,20 @@ async def mark_lesson_progress_for_quests(
     partir de `app.domains.learning.service.LearningService.complete_lesson`,
     logo após o XP base da lição ser concedido. Ainda não foi conectada porque
     isso exigiria editar `app/domains/learning/service.py`/`router.py`, tocados
-    em paralelo por outra tarefa nesta mesma iteração — a integração
+    em paralelo por outra tarefa nesta mesma iteração - a integração
     cross-módulo fica para um passo seguinte, quando o risco de conflito de
     merge concorrente não existir mais. Isso é esperado e aceitável nesta
     entrega, não uma tarefa incompleta.
 
     Efeitos, quando aplicável (chamadas para lições que não pertencem a
-    nenhuma missão ativa — o caso comum — são um no-op silencioso, sem lançar
+    nenhuma missão ativa - o caso comum - são um no-op silencioso, sem lançar
     `AppError`):
 
     - **Missão diária de hoje**: se `lesson_id` fizer parte dela e ainda não
       estiver concluída, marca como concluída e concede uma entrada de XP
       *adicional* no ledger, igual a `round(lesson.xp * DAILY_MISSION_BONUS)`
       (a constante "+10%" de `xp_rules.py`). É uma entrada extra, não uma
-      substituição do XP já concedido por `complete_lesson` — porque aquele
+      substituição do XP já concedido por `complete_lesson` - porque aquele
       fluxo grava `lesson.xp` diretamente, sem passar por
       `calculate_xp`/`Difficulty` (cuja tabela fixa de XP por dificuldade é
       incompatível com o XP livre por lição já em uso hoje). Reaproveitar a
@@ -727,7 +727,7 @@ async def mark_lesson_progress_for_quests(
       estiver concluída, marca como concluída. Se essa marcação completar o
       conjunto inteiro e o bônus de conclusão ainda não tiver sido concedido,
       grava uma única entrada de `BASE_XP_BY_DIFFICULTY[Difficulty.DIFICIL]`
-      (150 XP) e marca `bonus_awarded=True` — nunca concede o bônus duas
+      (150 XP) e marca `bonus_awarded=True` - nunca concede o bônus duas
       vezes, mesmo que a função seja chamada novamente depois.
     """
 
@@ -777,7 +777,7 @@ async def mark_lesson_progress_for_quests(
 # --------------------------------------------------------------------------- #
 #
 # Registrado à parte do router principal de gamification, tocado em paralelo
-# por outras tarefas — este router é incluído diretamente em
+# por outras tarefas - este router é incluído diretamente em
 # app/api/v1/router.py com o mesmo prefixo "/gamification" para expor os
 # endpoints sob o mesmo namespace de API sem editar arquivos concorrentes.
 

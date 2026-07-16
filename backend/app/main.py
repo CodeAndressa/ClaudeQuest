@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.router import api_v1_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
-from app.database import registry  # noqa: F401 — registra todos os modelos em Base.metadata
+from app.database import registry  # noqa: F401 - registra todos os modelos em Base.metadata
 from app.middlewares.error_handler import register_exception_handlers
 from app.middlewares.request_context import RequestContextMiddleware
 

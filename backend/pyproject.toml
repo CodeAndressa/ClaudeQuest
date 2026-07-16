@@ -1,7 +1,7 @@
 [project]
 name = "claudequest-backend"
 version = "0.1.0"
-description = "ClaudeQuest — API backend"
+description = "ClaudeQuest - API backend"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -15,6 +15,7 @@ dependencies = [
     "pyjwt>=2.9",
     "argon2-cffi>=23.1",
     "structlog>=24.4",
+    "reportlab>=4.2",
 ]
 
 [dependency-groups]
@@ -26,6 +27,8 @@ dev = [
     "ruff>=0.7",
     "mypy>=1.13",
     "bandit>=1.7",
+    "pypdf>=6.14.2",
+    "pymupdf>=1.28.0",
 ]
 
 [tool.pytest.ini_options]

@@ -1,10 +1,10 @@
-# ClaudeQuest
+# Vértice
 
 Plataforma de aprendizagem gamificada para formar profissionais no uso prático do
-ecossistema Claude — Chat, Cowork, Code, Prompt Engineering, MCP, Skills, Subagents e Hooks.
+ecossistema Claude - Chat, Cowork, Code, Prompt Engineering, MCP, Skills, Subagents e Hooks.
 
 A documentação de produto, arquitetura, banco de dados e decisões (ADRs) vive no
-Vault do Obsidian em `G:\Meu Drive\Obsidian\ClaudeLinguo` — esse repositório é
+Vault do Obsidian em `G:\Meu Drive\Obsidian\ClaudeLinguo` - esse repositório é
 apenas a implementação. Em caso de dúvida sobre uma regra de negócio, o Vault é
 a fonte de verdade, não este README.
 
@@ -36,26 +36,26 @@ ClaudeQuest/
 ## Setup local
 
 Pré-requisitos: Python 3.13+, [uv](https://docs.astral.sh/uv/), Node 22+.
-Não é necessário Docker — o banco é um arquivo SQLite local, criado automaticamente
+Não é necessário Docker - o banco é um arquivo SQLite local, criado automaticamente
 pelo Alembic (ver ADR sobre a troca de PostgreSQL para SQLite).
 
 ```bash
 cp .env.example .env
 
-# Backend — roda em http://localhost:8002
+# Backend - roda em http://localhost:8002
 cd backend
 uv sync
 uv run alembic upgrade head
 uv run uvicorn app.main:app --reload --port 8002
 
-# Usuário admin de demonstração (necessário: não existe tela de cadastro — ver ADR-011)
+# Usuário admin de demonstração (necessário: não existe tela de cadastro - ver ADR-011)
 uv run python scripts/seed_demo_data.py
 # admin@claudequest.dev / ClaudeQuest#2026
 
 # Conteúdo de demonstração da trilha "Claude Chat" (Track → Module → Level → Lesson → Question)
 uv run python scripts/seed_learning_content.py
 
-# Frontend — roda em http://localhost:5180 (proxy de /api para o backend)
+# Frontend - roda em http://localhost:5180 (proxy de /api para o backend)
 cd frontend
 npm install
 npm run dev
@@ -67,7 +67,7 @@ npm run dev
 ## Testes
 
 A suíte de testes do backend usa um arquivo SQLite **separado** do banco de
-desenvolvimento (`claudequest_test.db`, ver `TEST_DATABASE_URL` no `.env.example`) —
+desenvolvimento (`claudequest_test.db`, ver `TEST_DATABASE_URL` no `.env.example`) -
 nunca rode os testes apontando para o mesmo arquivo que o Alembic gerencia. Ambos os
 arquivos `.db` são criados automaticamente (o de teste, pelo fixture `db_engine`; o de
 dev, pelo `alembic upgrade head`) e nunca são versionados (ver `.gitignore`).
@@ -76,13 +76,13 @@ Cada domínio do backend mantém seus próprios testes em `app/domains/<dominio>
 testes de infraestrutura compartilhada (config, logging, middlewares) ficam em `backend/tests/`.
 
 ```bash
-# Backend — cobertura mínima de 90% (Services/Repositories exigem 100% quando existirem)
+# Backend - cobertura mínima de 90% (Services/Repositories exigem 100% quando existirem)
 cd backend && uv run pytest --cov
 
-# Frontend — unitários
+# Frontend - unitários
 cd frontend && npm run test:coverage
 
-# Frontend — end-to-end (sobe o próprio dev server automaticamente)
+# Frontend - end-to-end (sobe o próprio dev server automaticamente)
 cd frontend && npm run test:e2e
 ```
 
@@ -99,12 +99,12 @@ cd frontend && npm run lint && npm run typecheck && npm run format:check
 |---|---|---|
 | `auth` | login, refresh, logout, me, forgot-password, reset-password | Completo (AUTH-001/002/003) |
 | `users`, `organizations` | (sem endpoints próprios ainda) | Schema mínimo para suportar auth |
-| `learning` | `GET /learning/tracks`, `GET /learning/tracks/{id}` | Somente leitura (LEARN-001 a 006 parciais — ver backlog no Vault) |
-| `gamification` | `GET /gamification/me`, `POST /gamification/xp` | Cálculo e persistência de XP (GAME-001 parcial — ver backlog no Vault) |
+| `learning` | `GET /learning/tracks`, `GET /learning/tracks/{id}` | Somente leitura (LEARN-001 a 006 parciais - ver backlog no Vault) |
+| `gamification` | `GET /gamification/me`, `POST /gamification/xp` | Cálculo e persistência de XP (GAME-001 parcial - ver backlog no Vault) |
 
 ## Deploy
 
 - **Frontend**: Vercel (`frontend/vercel.json`), framework Vite.
-- **Backend**: ainda não implantado — por decisão registrada na ADR-011, o FOUND-001
+- **Backend**: ainda não implantado - por decisão registrada na ADR-011, o FOUND-001
   entrega apenas o ambiente local; a hospedagem do backend (Render/Neon) fica para
   uma tarefa de deploy dedicada, quando as credenciais estiverem disponíveis.

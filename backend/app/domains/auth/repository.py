@@ -50,7 +50,7 @@ class SessionRepository:
             await self.revoke(auth_session)
 
     async def revoke_all_for_user(self, user_id: UUID) -> None:
-        """Revoga todas as sessões ativas do usuário — usado no reset de senha
+        """Revoga todas as sessões ativas do usuário - usado no reset de senha
         (AUTH-003), para invalidar refresh tokens emitidos com a senha antiga."""
         statement = (
             update(AuthSession)

@@ -1,7 +1,7 @@
 """
 Cria o catálogo inicial de achievements (GAME-003), para permitir testar a
 avaliação/concessão automática (GET /gamification/me/achievements) sem
-precisar de um Admin Portal (ainda não implementado — ADMIN-002).
+precisar de um Admin Portal (ainda não implementado - ADMIN-002).
 
 Uso: uv run python scripts/seed_achievements.py
 """
@@ -63,7 +63,7 @@ async def seed(session: AsyncSession) -> None:
     for item in ACHIEVEMENTS:
         existing = await session.scalar(select(Achievement).where(Achievement.name == item["name"]))
         if existing is not None:
-            print(f"Achievement '{item['name']}' já existe — nada a fazer.")
+            print(f"Achievement '{item['name']}' já existe - nada a fazer.")
             continue
 
         achievement = await repository.create(

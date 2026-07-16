@@ -37,11 +37,7 @@ export interface RankingSummary {
 }
 
 export type AchievementMetric =
-  | "lessons_completed"
-  | "streak_days"
-  | "total_xp"
-  | "badges_count"
-  | "certificates_count"
+  "lessons_completed" | "streak_days" | "total_xp" | "badges_count" | "certificates_count"
 
 export interface Achievement {
   id: string

@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.config import get_settings
-from app.database import registry  # noqa: F401 — registra os modelos em Base.metadata
+from app.database import registry  # noqa: F401 - registra os modelos em Base.metadata
 from app.database.base import Base
 from app.database.session import get_db_session
 from app.main import app

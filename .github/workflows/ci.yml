@@ -7,7 +7,7 @@ on:
 
 jobs:
   backend:
-    name: Backend — lint, types, tests
+    name: Backend - lint, types, tests
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -39,7 +39,7 @@ jobs:
         run: uv run pytest --cov
 
   frontend:
-    name: Frontend — lint, types, tests, build
+    name: Frontend - lint, types, tests, build
     runs-on: ubuntu-latest
     defaults:
       run:

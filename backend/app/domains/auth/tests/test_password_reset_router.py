@@ -98,7 +98,7 @@ async def test_full_forgot_and_reset_flow_allows_login_with_new_password_and_rev
     old_refresh_cookie = old_login.cookies.get("refresh_token")
     assert old_refresh_cookie is not None
 
-    # 2. Forgot password — gera o token (logado via structlog, não retornado na API).
+    # 2. Forgot password - gera o token (logado via structlog, não retornado na API).
     forgot_response = await client_with_db.post(
         "/api/v1/auth/forgot-password", json={"email": "fluxo-completo@claudequest.dev"}
     )

@@ -25,13 +25,15 @@ async def seed(session: AsyncSession) -> None:
         return
 
     created_count = 0
-    skipped_count = 0
+    updated_count = 0
     issued_count = 0
     repository = CertificateRepository(session)
     for track in tracks:
         existing = await session.scalar(select(Certificate).where(Certificate.track_id == track.id))
         if existing is not None:
-            skipped_count += 1
+            existing.title = f"Certificado {track.title}"
+            existing.hours = track.estimated_hours
+            updated_count += 1
         else:
             await repository.create(
                 track_id=track.id,
@@ -49,7 +51,7 @@ async def seed(session: AsyncSession) -> None:
     await session.commit()
     print(
         "Certificados criados: "
-        f"{created_count}; ja existentes: {skipped_count}; emissoes preenchidas: {issued_count}."
+        f"{created_count}; atualizados: {updated_count}; emissoes preenchidas: {issued_count}."
     )
 
 

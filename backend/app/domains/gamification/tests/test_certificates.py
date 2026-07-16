@@ -36,9 +36,7 @@ async def _create_user(
 
 
 async def _login(client: httpx.AsyncClient, *, email: str, password: str) -> str:
-    response = await client.post(
-        "/api/v1/auth/login", json={"email": email, "password": password}
-    )
+    response = await client.post("/api/v1/auth/login", json={"email": email, "password": password})
     token: str = response.json()["data"]["access_token"]
     return token
 
@@ -101,7 +99,9 @@ class TestIssueCertificate:
         self, client_with_db: httpx.AsyncClient, db_session: AsyncSession
     ) -> None:
         admin = await _create_user(
-            db_session, email="cert-admin1@claudequest.dev", password="senha-forte",
+            db_session,
+            email="cert-admin1@claudequest.dev",
+            password="senha-forte",
             role=UserRole.ADMIN,
         )
         student = await _create_user(
@@ -109,9 +109,7 @@ class TestIssueCertificate:
         )
         track = await _create_track(db_session)
         certificate = await _create_certificate(db_session, track=track)
-        admin_token = await _login(
-            client_with_db, email=admin.email, password="senha-forte"
-        )
+        admin_token = await _login(client_with_db, email=admin.email, password="senha-forte")
 
         response = await client_with_db.post(
             f"/api/v1/gamification/certificates/{certificate.id}/issue",
@@ -154,7 +152,9 @@ class TestIssueCertificate:
         self, client_with_db: httpx.AsyncClient, db_session: AsyncSession
     ) -> None:
         admin = await _create_user(
-            db_session, email="cert-admin2@claudequest.dev", password="senha-forte",
+            db_session,
+            email="cert-admin2@claudequest.dev",
+            password="senha-forte",
             role=UserRole.ADMIN,
         )
         student = await _create_user(
@@ -216,6 +216,43 @@ class TestListMyCertificates:
         assert len(data) == 1
         assert data[0]["certificate_id"] == str(certificate.id)
         assert data[0]["validation_code"] == user_certificate.validation_code
+        assert data[0]["pdf_url"].endswith(f"/{user_certificate.id}/pdf")
+
+        pdf_response = await client_with_db.get(
+            data[0]["pdf_url"], headers={"Authorization": f"Bearer {token}"}
+        )
+        assert pdf_response.status_code == 200
+        assert pdf_response.headers["content-type"] == "application/pdf"
+        assert pdf_response.content.startswith(b"%PDF")
+
+    async def test_cannot_download_another_users_certificate(
+        self, client_with_db: httpx.AsyncClient, db_session: AsyncSession
+    ) -> None:
+        owner = await _create_user(
+            db_session, email="cert-owner@claudequest.dev", password="senha-forte"
+        )
+        other = await _create_user(
+            db_session, email="cert-other@claudequest.dev", password="senha-forte"
+        )
+        track = await _create_track(db_session)
+        certificate = await _create_certificate(db_session, track=track)
+        issued = UserCertificate(
+            certificate_id=certificate.id,
+            user_id=owner.id,
+            validation_code=generate_validation_code(),
+            issued_at=datetime.now(UTC),
+            pdf_url=None,
+        )
+        db_session.add(issued)
+        await db_session.flush()
+        token = await _login(client_with_db, email=other.email, password="senha-forte")
+
+        response = await client_with_db.get(
+            f"/api/v1/gamification/certificates/{issued.id}/pdf",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        assert response.status_code == 404
 
     async def test_returns_empty_list_when_user_has_no_certificates(
         self, client_with_db: httpx.AsyncClient, db_session: AsyncSession
@@ -251,7 +288,9 @@ class TestValidateCertificate:
         track = await _create_track(db_session)
         certificate = await _create_certificate(db_session, track=track)
         admin = await _create_user(
-            db_session, email="cert-admin3@claudequest.dev", password="senha-forte",
+            db_session,
+            email="cert-admin3@claudequest.dev",
+            password="senha-forte",
             role=UserRole.ADMIN,
         )
         admin_token = await _login(client_with_db, email=admin.email, password="senha-forte")

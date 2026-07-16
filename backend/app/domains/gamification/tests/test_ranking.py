@@ -147,7 +147,7 @@ class TestCurrentUserPosition:
     ) -> None:
         me_id = uuid4()
         me = _entry(user_id=me_id, name="Eu", total_xp=1)
-        # 10 outros usuários, todos com XP maior que o meu — me empurram para
+        # 10 outros usuários, todos com XP maior que o meu - me empurram para
         # a 11ª posição, fora do Top 10.
         others = [_entry(name=f"acima-{i}", total_xp=1000 + i) for i in range(10)]
         service = _service([me, *others])
@@ -218,7 +218,7 @@ class TestRankingServiceRequiresAsyncRepository:
     async def test_get_global_ranking_awaits_repository_entries(self) -> None:
         # Confirma que o Service não faz nenhuma suposição sobre a origem dos
         # dados além do contrato assíncrono do repositório (fake aqui,
-        # RankingRepository real — com JOINs entre users/xp_ledger/badges/
-        # certificates — na integração).
+        # RankingRepository real - com JOINs entre users/xp_ledger/badges/
+        # certificates - na integração).
         with pytest.raises(TypeError):
             RankingService(entries_not_a_repository=[])  # type: ignore[call-arg]

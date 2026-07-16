@@ -1,4 +1,4 @@
-# ClaudeQuest — instruções para sessões de Claude Code neste repositório
+# ClaudeQuest - instruções para sessões de Claude Code neste repositório
 
 ## Fonte de verdade
 
@@ -9,7 +9,7 @@ arquitetura e decisão vive no Vault do Obsidian em
 1. Leia a documentação relacionada no Vault (Vision, PRD, Functional Specification,
    Architecture, Database, Backend, Frontend, e o épico correspondente em
    `13 - Roadmap` e no backlog `tasks.md.md`).
-2. Se encontrar inconsistência entre documentos, não implemente — reporte e aguarde decisão.
+2. Se encontrar inconsistência entre documentos, não implemente - reporte e aguarde decisão.
 3. Ao terminar uma feature, atualize a documentação do Vault (ADR se houve decisão nova,
    status no backlog, roadmap se o escopo mudou).
 
@@ -21,7 +21,7 @@ arquitetura e decisão vive no Vault do Obsidian em
 - **Fluxo de request obrigatório**: Router → Service → Repository → Database.
   Regra de negócio só em Service. Nunca em Router ou Repository.
 - **Todo modelo ORM** herda de `app.database.base.AuditedModel` (UUID PK, soft
-  delete, colunas de auditoria — nunca redeclarar essas colunas manualmente).
+  delete, colunas de auditoria - nunca redeclarar essas colunas manualmente).
 - **Toda resposta de API** usa o envelope padrão (`app.shared.schemas.SuccessResponse`
   / `ErrorResponse`). Nunca retornar um objeto solto.
 - **Erros**: lançar `app.shared.errors.AppError`, nunca capturar `Exception` fora do
@@ -36,16 +36,16 @@ arquitetura e decisão vive no Vault do Obsidian em
 - **Nunca** usar `TODO`, `FIXME`, código temporário ou mock definitivo.
 - **Novo modelo ORM de domínio**: sempre adicionar o import em `app/database/registry.py`.
   Sem isso, o SQLAlchemy não registra a tabela em `Base.metadata` e FKs entre domínios
-  quebram em runtime (já aconteceu — ver histórico do AUTH-001).
+  quebram em runtime (já aconteceu - ver histórico do AUTH-001).
 - **Testes de domínio** ficam em `app/domains/<dominio>/tests/` (não em `backend/tests/`,
   que é só para infraestrutura compartilhada: config, logging, middlewares, health).
 - **Testes que tocam banco real** usam a fixture `db_session` (transação por teste,
-  revertida ao final) contra `TEST_DATABASE_URL` — nunca o banco de dev. Para testar
+  revertida ao final) contra `TEST_DATABASE_URL` - nunca o banco de dev. Para testar
   endpoints que dependem de banco, use a fixture `client_with_db` (que é um
-  `httpx.AsyncClient`, não o `TestClient` síncrono do FastAPI — o `TestClient` roda a
+  `httpx.AsyncClient`, não o `TestClient` síncrono do FastAPI - o `TestClient` roda a
   app numa thread com event loop próprio e quebra ao compartilhar uma conexão SQLite
   real com o setup do teste).
-- **Banco é SQLite** (arquivo local via `aiosqlite`, sem serviço/Docker — ver ADR de
+- **Banco é SQLite** (arquivo local via `aiosqlite`, sem serviço/Docker - ver ADR de
   migração de PostgreSQL para SQLite). Tipos de coluna UUID usam `sqlalchemy.Uuid`
   (genérico, nunca `sqlalchemy.dialects.postgresql.UUID`) e `server_default` de data usa
   `func.now()`/`CURRENT_TIMESTAMP` (nunca `sa.text('now()')`, que é sintaxe só de Postgres).
@@ -57,8 +57,8 @@ arquitetura e decisão vive no Vault do Obsidian em
 ## Portas e ambiente local
 
 - Backend: `localhost:8002` (prefixo de API `/api/v1`).
-- Frontend (Vite dev server): `localhost:5180` — porta não-padrão, ver README.
-- Banco: SQLite local (`backend/claudequest.db`), criado por `alembic upgrade head` —
+- Frontend (Vite dev server): `localhost:5180` - porta não-padrão, ver README.
+- Banco: SQLite local (`backend/claudequest.db`), criado por `alembic upgrade head` -
   sem serviço para manter no ar.
 
 ## Comandos úteis

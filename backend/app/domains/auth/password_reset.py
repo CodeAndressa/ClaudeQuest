@@ -1,7 +1,7 @@
 """Recuperação de senha (AUTH-003).
 
 Reúne, num único arquivo, model + repository + service + schemas do fluxo de
-"esqueci minha senha" — decisão deliberada para minimizar sobreposição com
+"esqueci minha senha" - decisão deliberada para minimizar sobreposição com
 model.py/service.py/router.py/repository.py do domínio auth, tocados em paralelo
 por outra tarefa (refresh/logout). Reaproveita User, hash_password e o padrão de
 token opaco (hash SHA-256 persistido) já usado em Session/refresh_token.
@@ -47,7 +47,7 @@ _INVALID_RESET_TOKEN = AppError(
 
 
 class PasswordResetToken(AuditedModel):
-    """Token opaco de recuperação de senha — apenas o hash SHA-256 é persistido,
+    """Token opaco de recuperação de senha - apenas o hash SHA-256 é persistido,
     análogo ao refresh_token_hash em Session (app/domains/auth/model.py)."""
 
     __tablename__ = "password_reset_tokens"
@@ -145,7 +145,7 @@ class PasswordResetService:
         self._sessions = sessions
 
     async def forgot_password(self, request: ForgotPasswordRequest) -> None:
-        """Sempre retorna sem erro — nunca revela se o e-mail está cadastrado."""
+        """Sempre retorna sem erro - nunca revela se o e-mail está cadastrado."""
         user = await self._users.get_by_email(request.email)
         if user is None or user.status != UserStatus.ACTIVE:
             return

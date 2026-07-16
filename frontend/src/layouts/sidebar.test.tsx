@@ -77,13 +77,11 @@ describe("Sidebar", () => {
     expect(screen.queryByRole("link", { name: /admin/i })).not.toBeInTheDocument()
   })
 
-  it("mostra itens futuros (Ranking) como desabilitados, nunca como link", () => {
+  it("mostra Ranking como link funcional", () => {
     renderSidebar()
 
-    expect(screen.queryByRole("link", { name: /ranking/i })).not.toBeInTheDocument()
-
-    const comingSoonLabels = screen.getAllByText(/em breve/i)
-    expect(comingSoonLabels.length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByRole("link", { name: /ranking/i })).toHaveAttribute("href", "/ranking")
+    expect(screen.queryByText(/em breve/i)).not.toBeInTheDocument()
   })
 
   it("alterna entre tema escuro e claro ao clicar no toggle de tema", async () => {

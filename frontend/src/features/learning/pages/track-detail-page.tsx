@@ -1,7 +1,18 @@
 import { useQuery } from "@tanstack/react-query"
 import { Link, useParams } from "react-router"
 import { useTranslation } from "react-i18next"
-import { AlertTriangle, ArrowLeft, CheckCircle2, Clock, Loader2 } from "lucide-react"
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Beaker,
+  CheckCircle2,
+  ClipboardCheck,
+  Clock,
+  FileText,
+  GitBranch,
+  Loader2,
+  PenLine,
+} from "lucide-react"
 
 import { fetchTrackDetail } from "@/features/learning/services/learning-service"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -47,44 +58,68 @@ function LevelPath({ trackId, level }: { trackId: string; level: LevelDetail }) 
       </div>
 
       <ol className="ml-2 flex flex-col gap-3 border-l-2 border-border pl-6">
-        {lessons.map((lesson) => (
-          <li key={lesson.id} className="relative">
-            <span
-              className={`absolute -left-[31px] top-3 flex size-4 items-center justify-center rounded-full border-2 ${
-                lesson.completed
-                  ? "border-emerald-400 bg-emerald-400 text-background"
-                  : "border-primary bg-background"
-              }`}
-              aria-hidden="true"
+        {lessons.map((lesson, index) => {
+          const ActivityIcon =
+            lesson.lesson_type === "lab"
+              ? Beaker
+              : lesson.lesson_type === "checklist"
+                ? ClipboardCheck
+                : lesson.lesson_type === "free_answer"
+                  ? PenLine
+                  : lesson.lesson_type === "challenge"
+                    ? GitBranch
+                    : FileText
+          return (
+            <li
+              key={lesson.id}
+              className="journey-node relative"
+              style={{ animationDelay: `${Math.min(index, 6) * 45}ms` }}
             >
-              {lesson.completed ? <CheckCircle2 className="size-3" /> : null}
-            </span>
-            <Link
-              to={`/tracks/${trackId}/lessons/${lesson.id}`}
-              className={`flex items-center justify-between gap-3 rounded-md border px-4 py-3 text-sm transition-colors duration-150 hover:bg-accent ${
-                lesson.completed
-                  ? "border-emerald-500/40 bg-emerald-500/10"
-                  : "border-border bg-card"
-              }`}
-            >
-              <span className="flex flex-col gap-1">
-                <span className="font-medium text-foreground">{lesson.title}</span>
-                {lesson.completed ? (
-                  <span className="text-xs font-medium text-emerald-400">
-                    {t("lesson.completedBadge")}
+              <span
+                className={`absolute -left-[31px] top-3 flex size-4 items-center justify-center rounded-full border-2 ${
+                  lesson.completed
+                    ? "border-emerald-400 bg-emerald-400 text-background"
+                    : "border-primary bg-background"
+                }`}
+                aria-hidden="true"
+              >
+                {lesson.completed ? <CheckCircle2 className="size-3" /> : null}
+              </span>
+              <Link
+                to={`/tracks/${trackId}/lessons/${lesson.id}`}
+                className={`group flex min-h-16 items-center justify-between gap-3 rounded-lg border px-4 py-3 text-sm transition-[border-color,background-color,transform] duration-200 hover:translate-x-1 hover:border-primary/50 ${
+                  lesson.completed
+                    ? "border-emerald-500/40 bg-emerald-500/10"
+                    : "border-border bg-card"
+                }`}
+              >
+                <span className="flex min-w-0 items-center gap-3">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary transition-colors group-hover:bg-primary/15">
+                    <ActivityIcon className="size-4" aria-hidden="true" />
                   </span>
-                ) : null}
-              </span>
-              <span className="flex shrink-0 items-center gap-1 text-muted-foreground">
-                {lesson.completed ? (
-                  <CheckCircle2 className="size-3.5 text-emerald-400" aria-hidden="true" />
-                ) : null}
-                <Clock className="size-3.5" aria-hidden="true" />
-                {t("lesson.estimatedMinutes", { count: lesson.estimated_minutes })}
-              </span>
-            </Link>
-          </li>
-        ))}
+                  <span className="flex min-w-0 flex-col gap-1">
+                    <span className="text-xs font-medium text-primary">
+                      {t(`lesson.type.${lesson.lesson_type}`, { defaultValue: lesson.lesson_type })}
+                    </span>
+                    <span className="truncate font-medium text-foreground">{lesson.title}</span>
+                    {lesson.completed ? (
+                      <span className="text-xs font-medium text-emerald-400">
+                        {t("lesson.completedBadge")}
+                      </span>
+                    ) : null}
+                  </span>
+                </span>
+                <span className="flex shrink-0 items-center gap-1 text-muted-foreground">
+                  {lesson.completed ? (
+                    <CheckCircle2 className="size-3.5 text-emerald-400" aria-hidden="true" />
+                  ) : null}
+                  <Clock className="size-3.5" aria-hidden="true" />
+                  {t("lesson.estimatedMinutes", { count: lesson.estimated_minutes })}
+                </span>
+              </Link>
+            </li>
+          )
+        })}
       </ol>
     </div>
   )
@@ -94,21 +129,21 @@ function ModuleSection({ trackId, module }: { trackId: string; module: ModuleDet
   const levels = [...module.levels].sort((a, b) => a.level_number - b.level_number)
 
   return (
-    <Card>
-      <CardHeader>
+    <section className="rounded-xl border border-border bg-card/60">
+      <div className="border-b border-border px-6 py-5">
         <h2 className="text-lg font-medium leading-none tracking-tight text-foreground">
           {module.title}
         </h2>
         {module.description ? (
           <p className="text-sm text-muted-foreground">{module.description}</p>
         ) : null}
-      </CardHeader>
-      <CardContent className="flex flex-col gap-6">
+      </div>
+      <div className="flex flex-col gap-6 px-6 py-5">
         {levels.map((level) => (
           <LevelPath key={level.id} trackId={trackId} level={level} />
         ))}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   )
 }
 
@@ -130,7 +165,7 @@ export function TrackDetailPage() {
     : ""
 
   return (
-    <div className="flex flex-col gap-6 px-4 py-8 md:px-8">
+    <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-6 px-4 py-8 md:px-8">
       <Link
         to="/tracks"
         className="flex w-fit items-center gap-2 text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground"

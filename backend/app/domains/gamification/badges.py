@@ -1,7 +1,7 @@
 """Badges (GAME-002).
 
 Reúne, num único arquivo, models + repository + service + schemas do catálogo de
-badges e das concessões a usuários — decisão deliberada para minimizar
+badges e das concessões a usuários - decisão deliberada para minimizar
 sobreposição com model.py/service.py/router.py/repository.py/schemas.py do
 domínio gamification, tocados em paralelo por outra tarefa (GAME-001, XP). Mesmo
 padrão já usado em app/domains/auth/password_reset.py.
@@ -14,7 +14,7 @@ Fonte de verdade das regras de negócio: Vault do Obsidian,
 Limitação deliberada (ver relatório final da tarefa): a documentação sugere
 badges concedidos automaticamente por marcos de progresso (ex.: "100 Missões",
 "365 Dias"). Esse gatilho automático dependeria de um sistema de
-progresso/tentativas (Attempts/Missions) que ainda não existe no projeto — não
+progresso/tentativas (Attempts/Missions) que ainda não existe no projeto - não
 há nenhuma tabela desse tipo no domínio `learning` nem em qualquer outro
 domínio hoje. Por isso, este módulo implementa apenas a infraestrutura real:
 catálogo de badges + concessão manual via API (mesmo padrão de GAME-001, onde
@@ -61,7 +61,7 @@ class BadgeCategory(enum.StrEnum):
 
 
 class Badge(AuditedModel):
-    """Um badge do catálogo — marco possível de ser conquistado por um usuário."""
+    """Um badge do catálogo - marco possível de ser conquistado por um usuário."""
 
     __tablename__ = "badges"
 
@@ -80,7 +80,7 @@ class Badge(AuditedModel):
 
 
 class UserBadge(AuditedModel):
-    """Concessão de um badge a um usuário — cada par (user, badge) é único.
+    """Concessão de um badge a um usuário - cada par (user, badge) é único.
 
     Não há coluna de progresso aqui de propósito: como não existe ainda um
     sistema de Attempts/Progress no projeto, a concessão é sempre um evento
@@ -151,7 +151,7 @@ _BADGE_NOT_FOUND = AppError(
 
 _BADGE_ALREADY_AWARDED = AppError(
     code="badge_already_awarded",
-    message="Este usuário já possui este badge — não é possível concedê-lo novamente.",
+    message="Este usuário já possui este badge - não é possível concedê-lo novamente.",
     status_code=409,
 )
 
@@ -221,7 +221,7 @@ class UserBadgeRepository:
         user_badge = UserBadge(user_id=user_id, badge_id=badge_id, earned_at=datetime.now(UTC))
         self._session.add(user_badge)
         await self._session.flush()
-        # `badge` é `lazy="joined"`, mas isso só se aplica a queries feitas via `select()` —
+        # `badge` é `lazy="joined"`, mas isso só se aplica a queries feitas via `select()` -
         # um objeto recém-criado por `add()+flush()` não tem a relação carregada. Sem este
         # refresh explícito, acessar `user_badge.badge` fora de um contexto já resolvido
         # (ex.: dentro do Pydantic `model_validate` no router) lança `MissingGreenlet`,
@@ -265,7 +265,7 @@ class BadgeService:
 # --------------------------------------------------------------------------- #
 #
 # Registrado à parte do router principal de gamification (app/domains/gamification/
-# router.py), que pertence à tarefa GAME-001 em andamento em paralelo — este router
+# router.py), que pertence à tarefa GAME-001 em andamento em paralelo - este router
 # é incluído diretamente em app/api/v1/router.py com o mesmo prefixo "/gamification"
 # para expor os endpoints sob o mesmo namespace de API sem editar arquivos
 # concorrentes.

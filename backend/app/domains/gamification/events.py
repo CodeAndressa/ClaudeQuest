@@ -1,7 +1,7 @@
 """Eventos (GAME-009).
 
 Reúne, num único arquivo, model + repository + service + schemas + router de
-Eventos — decisão deliberada para minimizar sobreposição com os outros arquivos
+Eventos - decisão deliberada para minimizar sobreposição com os outros arquivos
 novos sendo criados em paralelo no mesmo diretório (Ligas, Missões Diárias e
 Semanais), cada um em seu próprio módulo. Mesmo padrão já usado em
 `app/domains/gamification/badges.py` e `app/domains/gamification/certificates.py`.
@@ -13,20 +13,20 @@ Semanais e Eventos.md.md` (seção "Eventos").
 Escopo desta entrega:
 
 1. **Catálogo de eventos com janela de datas**, configurado pelo Admin (`name`,
-   `starts_at`, `ends_at`) — como ainda não existe um Admin Portal real no
+   `starts_at`, `ends_at`) - como ainda não existe um Admin Portal real no
    backend (só um shell estático no frontend, ver ADMIN-001), a configuração é
    exposta como endpoints admin-only, no mesmo padrão de `badges.py`
    (`current_user.role == UserRole.ADMIN`), em vez de esperar por um Admin
    Portal futuro.
 2. **Consulta de "evento ativo agora"**, pública para qualquer usuário
-   autenticado — é a informação mínima que o resto do sistema precisa para
+   autenticado - é a informação mínima que o resto do sistema precisa para
    decidir se aplica o multiplicador `SPECIAL_EVENT_BONUS` (já reservado em
    `xp_rules.py`, acionado pela flag `special_event` de `calculate_xp`).
 
 Limitação deliberada, documentada aqui e no relatório final da tarefa: este
 módulo **não** aciona o multiplicador automaticamente ao conceder XP. A
 documentação descreve um evento como algo que também libera missões temporárias
-exclusivas e badges/itens cosméticos (seção "Regras gerais de um evento") — nada
+exclusivas e badges/itens cosméticos (seção "Regras gerais de um evento") - nada
 disso existe ainda no código, e a integração "verificar evento ativo e aplicar
 o bônus automaticamente ao conceder XP" depende de tocar
 `app/domains/learning/service.py` (onde XP é concedido hoje), o que está fora
@@ -36,13 +36,13 @@ agentes nesse mesmo arquivo. Este módulo expõe o método de serviço público
 essa integração cross-módulo depois.
 
 Também não implementamos aqui (fora de escopo, sem entidade correspondente
-ainda no projeto — mesma lacuna já documentada por `badges.py` e
+ainda no projeto - mesma lacuna já documentada por `badges.py` e
 `certificates.py` em relação ao sistema de progresso/Attempts):
 
 * Missões temporárias exclusivas de um evento.
 * Badges/itens cosméticos exclusivos de evento que se tornam "históricos" ao
   final do evento.
-* O job/mecanismo que "vira o dia/semana" — Eventos não têm job de geração
+* O job/mecanismo que "vira o dia/semana" - Eventos não têm job de geração
   automática (diferente de Missões Diárias/Semanais): o Admin cadastra a
   janela de datas manualmente, e a checagem de "ativo agora" é sempre feita
   sob demanda, comparando com a hora corrente.
@@ -79,7 +79,7 @@ class Event(AuditedModel):
     prazo (ex.: encerramento antecipado por incidente), mesmo padrão já usado
     em `Track`/`School` no domínio `learning`. Um evento só é considerado
     "ativo agora" quando `is_active` é verdadeiro **e** o instante atual está
-    dentro da janela `[starts_at, ends_at]` — ver `EventService.is_event_active_now`.
+    dentro da janela `[starts_at, ends_at]` - ver `EventService.is_event_active_now`.
     """
 
     __tablename__ = "events"
@@ -204,7 +204,7 @@ class EventService:
 
         Ponto de extensão público para a integração futura (fora de escopo
         aqui) que aciona a flag `special_event` de `calculate_xp`
-        (`app/domains/gamification/xp_rules.py`) ao conceder XP — ver docstring
+        (`app/domains/gamification/xp_rules.py`) ao conceder XP - ver docstring
         do módulo.
         """
 
@@ -223,7 +223,7 @@ class EventService:
 # --------------------------------------------------------------------------- #
 #
 # Registrado à parte do router principal de gamification (app/domains/gamification/
-# router.py), tocado em paralelo por outras tarefas — este router é incluído
+# router.py), tocado em paralelo por outras tarefas - este router é incluído
 # diretamente em app/api/v1/router.py com o mesmo prefixo "/gamification" para
 # expor os endpoints sob o mesmo namespace de API sem editar arquivos concorrentes.
 

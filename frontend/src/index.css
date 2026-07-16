@@ -4,24 +4,25 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #0b0b0d;
-  --foreground: #ffffff;
-  --card: #1b1b20;
+  --ease-out-product: cubic-bezier(0.22, 1, 0.36, 1);
+  --background: #050908;
+  --foreground: #f4f7f5;
+  --card: #09110e;
   --card-foreground: #ffffff;
-  --popover: #1b1b20;
+  --popover: #0b1511;
   --popover-foreground: #ffffff;
-  --primary: #e67e22;
+  --primary: #34d399;
   --primary-foreground: #0b0b0d;
-  --secondary: #24242b;
-  --secondary-foreground: #d9d9d9;
-  --muted: #24242b;
-  --muted-foreground: #8a8a93;
-  --accent: #ffb347;
+  --secondary: #101a16;
+  --secondary-foreground: #d7e2dc;
+  --muted: #111b17;
+  --muted-foreground: #8d9d95;
+  --accent: #6ee7b7;
   --accent-foreground: #0b0b0d;
   --destructive: #ef4444;
-  --border: #3a3a40;
-  --input: #3a3a40;
-  --ring: #e67e22;
+  --border: #1d3028;
+  --input: #294238;
+  --ring: #34d399;
   --success: #22c55e;
   --warning: #f59e0b;
   --info: #3b82f6;
@@ -29,8 +30,8 @@
 }
 
 /*
- * Paleta clara (Light Mode opcional — UX.md.md: "Dark Mode obrigatório; Light
- * Mode opcional"). Mantém a mesma identidade visual (primário laranja) com
+ * Paleta clara (Light Mode opcional - UX.md.md: "Dark Mode obrigatório; Light
+ * Mode opcional"). Mantém a identidade visual verde com
  * contraste adequado (WCAG AA) sobre fundos claros. Aplicada via classe
  * `.light` no elemento <html> (ver src/store/theme-store.ts).
  */
@@ -41,18 +42,18 @@
   --card-foreground: #16161a;
   --popover: #ffffff;
   --popover-foreground: #16161a;
-  --primary: #d9690f;
+  --primary: #047857;
   --primary-foreground: #ffffff;
   --secondary: #ececef;
   --secondary-foreground: #3a3a40;
   --muted: #ececef;
   --muted-foreground: #63636b;
-  --accent: #ffb347;
+  --accent: #a7f3d0;
   --accent-foreground: #16161a;
   --destructive: #dc2626;
   --border: #e2e2e6;
   --input: #d7d7dc;
-  --ring: #d9690f;
+  --ring: #047857;
   --success: #16a34a;
   --warning: #d97706;
   --info: #2563eb;
@@ -89,4 +90,86 @@
 body {
   @apply bg-background text-foreground;
   font-family: var(--font-sans);
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+
+.journey-node,
+.practice-item {
+  animation: mastery-reveal 360ms var(--ease-out-product) both;
+}
+
+.practice-enter {
+  animation: practice-focus 420ms var(--ease-out-product) both;
+}
+
+.feedback-reveal {
+  animation: feedback-confirm 300ms var(--ease-out-product) both;
+}
+
+@keyframes mastery-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes practice-focus {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes feedback-confirm {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (pointer: coarse) {
+  button,
+  a,
+  input,
+  textarea,
+  select {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

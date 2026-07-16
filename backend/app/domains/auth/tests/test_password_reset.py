@@ -126,7 +126,7 @@ async def test_generate_reset_token_returns_matching_pair() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Service — forgot_password
+# Service - forgot_password
 # --------------------------------------------------------------------------- #
 
 
@@ -163,7 +163,7 @@ async def test_forgot_password_does_nothing_for_inactive_user(db_session: AsyncS
 
 
 # --------------------------------------------------------------------------- #
-# Service — reset_password
+# Service - reset_password
 # --------------------------------------------------------------------------- #
 
 

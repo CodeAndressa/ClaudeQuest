@@ -14,7 +14,7 @@ class AuthenticatedUser(BaseModel):
 
 
 class TokenPairResponse(BaseModel):
-    """Uso interno do Service — nunca serializado diretamente numa resposta HTTP.
+    """Uso interno do Service - nunca serializado diretamente numa resposta HTTP.
 
     O refresh_token nunca deve chegar ao corpo JSON: o Router o extrai daqui e o
     envia como cookie httpOnly (ver app/domains/auth/cookies.py).
@@ -28,7 +28,7 @@ class TokenPairResponse(BaseModel):
 
 
 class SessionResponse(BaseModel):
-    """Resposta pública de login/refresh — nunca inclui o refresh token."""
+    """Resposta pública de login/refresh - nunca inclui o refresh token."""
 
     access_token: str
     token_type: str = "bearer"

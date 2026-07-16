@@ -17,7 +17,7 @@ interface AuthState {
 /**
  * O access token vive SÓ em memória (nunca em `persist`): ele nunca deve ir para
  * localStorage, para reduzir a superfície de roubo via XSS. O refresh token nem
- * chega ao JS — é um cookie httpOnly gerenciado pelo backend. Persistimos apenas
+ * chega ao JS - é um cookie httpOnly gerenciado pelo backend. Persistimos apenas
  * `user`, só para evitar flash de UI enquanto o bootstrap (refresh via cookie)
  * roda no carregamento da página; `isAuthenticated`/`accessToken` reais são
  * sempre recalculados a partir do refresh, nunca confiados a partir do cache.

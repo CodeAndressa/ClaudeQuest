@@ -7,7 +7,7 @@ def test_health_returns_service_identity(client: TestClient) -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["success"] is True
-    assert body["data"]["app"] == "ClaudeQuest"
+    assert body["data"]["app"] == "Vértice"
     assert body["data"]["status"] == "ok"
     assert "request_id" in body["metadata"]
     assert body["metadata"]["execution_time_ms"] >= 0

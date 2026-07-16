@@ -6,7 +6,7 @@ from app.database.base import AuditedModel
 class Organization(AuditedModel):
     """
     Preparação para SaaS multiempresa (05 - Database/Database Specification.md.md).
-    O conteúdo educacional permanece global no MVP — ver ADR-011, item 4.
+    O conteúdo educacional permanece global no MVP - ver ADR-011, item 4.
     """
 
     __tablename__ = "organizations"

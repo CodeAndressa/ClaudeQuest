@@ -1,0 +1,1 @@
+"""Operações administrativas da plataforma."""

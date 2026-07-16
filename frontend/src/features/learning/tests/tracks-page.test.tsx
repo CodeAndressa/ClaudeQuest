@@ -111,6 +111,8 @@ describe("TracksPage", () => {
     expect(screen.getByText("Avançado")).toBeInTheDocument()
     expect(screen.getByText("3h")).toBeInTheDocument()
     expect(screen.getByText("6h")).toBeInTheDocument()
+    expect(screen.getByText("2 atividades")).toBeInTheDocument()
+    expect(screen.getByText("4 atividades")).toBeInTheDocument()
     expect(screen.getByText("0 de 2 missões concluídas")).toBeInTheDocument()
     expect(screen.getByText("2 de 4 missões concluídas")).toBeInTheDocument()
     expect(screen.getByRole("progressbar", { name: "2 de 4 missões concluídas" })).toHaveAttribute(

@@ -2,8 +2,8 @@ from fastapi import Response
 
 from app.core.config import get_settings
 
-REFRESH_TOKEN_COOKIE_NAME = "refresh_token"  # nosec B105 — nome do cookie, não um segredo
-REFRESH_TOKEN_COOKIE_PATH = "/api/v1/auth"  # nosec B105 — path do cookie, não um segredo
+REFRESH_TOKEN_COOKIE_NAME = "refresh_token"  # nosec B105 - nome do cookie, não um segredo
+REFRESH_TOKEN_COOKIE_PATH = "/api/v1/auth"  # nosec B105 - path do cookie, não um segredo
 
 
 def set_refresh_token_cookie(response: Response, refresh_token: str) -> None:

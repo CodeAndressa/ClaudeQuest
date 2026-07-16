@@ -38,7 +38,7 @@ describe("LoginPage", () => {
   it("renderiza o título e o formulário de login", () => {
     renderLoginPage()
 
-    expect(screen.getByRole("heading", { name: /entrar no claudequest/i })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: /entrar no vértice/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/e-mail/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
   })

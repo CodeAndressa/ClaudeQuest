@@ -6,7 +6,7 @@ import { useAuthStore } from "@/store/auth-store"
 /**
  * Tenta restaurar a sessão a partir do cookie httpOnly refresh_token ao montar
  * o app. Isso é necessário porque o access token vive só em memória (nunca em
- * localStorage) — a cada carregamento de página, ele precisa ser reobtido via
+ * localStorage) - a cada carregamento de página, ele precisa ser reobtido via
  * /auth/refresh. Se falhar (cookie ausente/expirado/revogado), trata como
  * usuário deslogado, sem exibir erro na tela.
  */

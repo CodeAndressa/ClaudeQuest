@@ -1,7 +1,7 @@
 """
 Regras puras de XP e níveis do Gamification Engine.
 
-Este módulo não depende de banco de dados, sessão ou qualquer outro domínio —
+Este módulo não depende de banco de dados, sessão ou qualquer outro domínio -
 é testável isoladamente e reutilizável por outras features (ex.: Missões) sem
 acoplamento. Fonte de verdade das regras de negócio: Vault do Obsidian,
 `G:\\Meu Drive\\Obsidian\\ClaudeLinguo\\08 - Gamification\\Gamification.md.md`.
@@ -23,7 +23,7 @@ class Difficulty(enum.StrEnum):
     CERTIFICACAO = "certificacao"
 
 
-# XP base por dificuldade — valores fixos definidos na documentação de produto.
+# XP base por dificuldade - valores fixos definidos na documentação de produto.
 BASE_XP_BY_DIFFICULTY: dict[Difficulty, int] = {
     Difficulty.MUITO_FACIL: 25,
     Difficulty.FACIL: 50,
@@ -35,7 +35,7 @@ BASE_XP_BY_DIFFICULTY: dict[Difficulty, int] = {
     Difficulty.CERTIFICACAO: 2000,
 }
 
-# Multiplicadores aditivos (aplicados sobre 1.0, somados entre si — não compostos)
+# Multiplicadores aditivos (aplicados sobre 1.0, somados entre si - não compostos)
 # conforme a seção "Multiplicadores" da documentação.
 FIRST_ATTEMPT_BONUS = 0.20
 STREAK_OVER_30_DAYS_BONUS = 0.15
@@ -99,7 +99,7 @@ def calculate_xp(
 #
 # É uma potência (não uma exponencial pura tipo `base ** N`) porque uma
 # exponencial pura cresce rápido demais para caber nos 4 pontos dados
-# (600/250 = 2.4x e 1000/600 ≈ 1.67x — a razão de incremento cai a cada
+# (600/250 = 2.4x e 1000/600 ≈ 1.67x - a razão de incremento cai a cada
 # nível, o que uma exponencial `a * b**N` não reproduz, mas uma potência
 # com expoente > 1 reproduz bem). O crescimento permanece "suave" porque a
 # derivada de N^1.26 cresce lentamente para expoente próximo de 1.
@@ -125,7 +125,7 @@ def xp_required_for_level(level: int) -> int:
 def calculate_level(total_xp: int) -> int:
     """Calcula o nível atual do usuário a partir do XP total acumulado.
 
-    Nunca retorna nível abaixo de 1. Nunca "desnivela" o usuário — XP nunca é
+    Nunca retorna nível abaixo de 1. Nunca "desnivela" o usuário - XP nunca é
     subtraído (ver seção "Penalidades" da documentação: "Nunca punir").
     """
 

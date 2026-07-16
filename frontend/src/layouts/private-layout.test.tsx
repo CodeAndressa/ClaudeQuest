@@ -78,7 +78,7 @@ describe("PrivateLayout", () => {
   it("renderiza o nome do app no header mobile", () => {
     renderLayout()
 
-    const appNameMatches = screen.getAllByText("ClaudeQuest")
+    const appNameMatches = screen.getAllByText("Vértice")
     expect(appNameMatches.length).toBeGreaterThan(0)
   })
 

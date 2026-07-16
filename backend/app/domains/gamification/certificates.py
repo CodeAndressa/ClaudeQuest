@@ -1,6 +1,6 @@
 """Certificados (GAME-006).
 
-Escopo desta entrega — ver `08 - Gamification/Gamification.md.md` (seção "Certificados")
+Escopo desta entrega - ver `08 - Gamification/Gamification.md.md` (seção "Certificados")
 e `05 - Database/Database Specification.md.md` (seções "Certificates" / "User Certificates").
 
 Reúne model, repository, service e schemas num único arquivo por decisão explícita da
@@ -11,7 +11,7 @@ Duas limitações deliberadas, documentadas aqui e no relatório final da tarefa
 
 1. **Sem geração real de PDF/QR Code.** `UserCertificate.pdf_url` fica sempre `None`.
    A geração do arquivo (motor de PDF + QR Code de verificação) é o epico CERT-001,
-   fora do escopo desta tarefa — aqui só existe o registro/catálogo e a emissão manual.
+   fora do escopo desta tarefa - aqui só existe o registro/catálogo e a emissão manual.
 2. **Emissão é sempre manual (admin-only), nunca automática por "100% da trilha".**
    A regra de negócio correta ("emitir automaticamente quando o usuário completa 100%
    de uma trilha") depende do sistema de progresso (`UserProgress`), que ainda não
@@ -24,10 +24,15 @@ Duas limitações deliberadas, documentadas aqui e no relatório final da tarefa
 import secrets
 import uuid
 from datetime import UTC, datetime
+from io import BytesIO
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+from reportlab.lib.colors import HexColor
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.pdfgen.canvas import Canvas
 from sqlalchemy import DateTime, ForeignKey, Integer, String, select
 from sqlalchemy import Uuid as UUID
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -50,7 +55,7 @@ class Certificate(AuditedModel):
     """Catálogo de certificados emitíveis, um por trilha.
 
     (05 - Database/Database Specification.md.md, seção "Certificates"). O campo
-    `template` previsto no documento original não é implementado aqui — pertence
+    `template` previsto no documento original não é implementado aqui - pertence
     à geração real de PDF (fora de escopo, ver módulo docstring).
     """
 
@@ -70,7 +75,7 @@ class UserCertificate(AuditedModel):
     """Emissão de um certificado para um usuário específico.
 
     (05 - Database/Database Specification.md.md, seção "User Certificates").
-    `validation_code` é único e gerado no momento da emissão — é o que permite a
+    `validation_code` é único e gerado no momento da emissão - é o que permite a
     validação pública (sem autenticação) via
     `GET /certificates/validate/{validation_code}`. `pdf_url` fica sempre `None`
     nesta entrega (ver módulo docstring).
@@ -148,7 +153,7 @@ class CertificateRepository:
         self._session = session
 
     async def create(self, *, track_id: uuid.UUID, title: str, hours: int) -> Certificate:
-        """Cria uma entrada de catálogo de certificado (ainda sem PDF/QR Code — ver
+        """Cria uma entrada de catálogo de certificado (ainda sem PDF/QR Code - ver
         docstring do módulo). Usada hoje só pelos scripts de seed; um endpoint de
         gestão de catálogo fica para o Admin Portal (ADMIN-002)."""
         certificate = Certificate(track_id=track_id, title=title, hours=hours)
@@ -232,6 +237,25 @@ class CertificateRepository:
             return None
         return row.UserCertificate, row.Certificate
 
+    async def get_issued_for_user(
+        self, *, user_certificate_id: uuid.UUID, user_id: uuid.UUID
+    ) -> tuple[UserCertificate, Certificate] | None:
+        statement = (
+            select(UserCertificate, Certificate)
+            .join(Certificate, Certificate.id == UserCertificate.certificate_id)
+            .where(
+                UserCertificate.id == user_certificate_id,
+                UserCertificate.user_id == user_id,
+                UserCertificate.deleted_at.is_(None),
+                Certificate.deleted_at.is_(None),
+            )
+        )
+        result = await self._session.execute(statement)
+        row = result.first()
+        if row is None:
+            return None
+        return row.UserCertificate, row.Certificate
+
 
 async def issue_completed_track_certificates(
     session: AsyncSession, *, user_id: uuid.UUID, track_id: uuid.UUID
@@ -255,7 +279,7 @@ class UserLookupRepository:
     """Busca mínima de usuário.
 
     Isolada para não depender de `UserRepository` do domínio users além do
-    necessário — só precisamos do nome para a resposta de validação pública.
+    necessário - só precisamos do nome para a resposta de validação pública.
     """
 
     def __init__(self, session: AsyncSession) -> None:
@@ -333,10 +357,89 @@ class CertificateService:
                 hours=certificate.hours,
                 validation_code=user_certificate.validation_code,
                 issued_at=user_certificate.issued_at,
-                pdf_url=user_certificate.pdf_url,
+                pdf_url=f"/api/v1/gamification/certificates/{user_certificate.id}/pdf",
             )
             for user_certificate, certificate in rows
         ]
+
+    async def render_certificate_pdf(
+        self, *, user_certificate_id: uuid.UUID, user_id: uuid.UUID
+    ) -> tuple[BytesIO, str]:
+        row = await self._certificates.get_issued_for_user(
+            user_certificate_id=user_certificate_id, user_id=user_id
+        )
+        if row is None:
+            raise _CERTIFICATE_NOT_FOUND
+
+        issued, certificate = row
+        user_name = await self._users.get_name(user_id)
+        if user_name is None:
+            raise _CERTIFICATE_NOT_FOUND
+
+        buffer = BytesIO()
+        width, height = landscape(A4)
+        canvas = Canvas(buffer, pagesize=(width, height))
+        ink = HexColor("#16161A")
+        orange = HexColor("#D9690F")
+        muted = HexColor("#63636B")
+
+        canvas.setFillColor(HexColor("#F7F7F8"))
+        canvas.rect(0, 0, width, height, stroke=0, fill=1)
+        canvas.setStrokeColor(orange)
+        canvas.setLineWidth(4)
+        canvas.rect(28, 28, width - 56, height - 56, stroke=1, fill=0)
+        canvas.setLineWidth(1)
+        canvas.rect(38, 38, width - 76, height - 76, stroke=1, fill=0)
+
+        canvas.setFillColor(orange)
+        canvas.setFont("Helvetica-Bold", 15)
+        canvas.drawCentredString(width / 2, height - 92, "CLAUDEQUEST")
+        canvas.setFillColor(ink)
+        canvas.setFont("Helvetica-Bold", 34)
+        canvas.drawCentredString(width / 2, height - 150, "Certificado de conclusão")
+        canvas.setFillColor(muted)
+        canvas.setFont("Helvetica", 14)
+        canvas.drawCentredString(width / 2, height - 190, "Certificamos que")
+        canvas.setFillColor(ink)
+        canvas.setFont("Helvetica-Bold", 25)
+        canvas.drawCentredString(width / 2, height - 235, user_name)
+        canvas.setFillColor(muted)
+        canvas.setFont("Helvetica", 14)
+        canvas.drawCentredString(width / 2, height - 274, "concluiu integralmente a trilha")
+        canvas.setFillColor(ink)
+        canvas.setFont("Helvetica-Bold", 22)
+        canvas.drawCentredString(
+            width / 2, height - 314, certificate.title.removeprefix("Certificado ")
+        )
+        canvas.setFillColor(muted)
+        canvas.setFont("Helvetica", 12)
+        issued_date = issued.issued_at.strftime("%d/%m/%Y")
+        canvas.drawCentredString(
+            width / 2,
+            height - 353,
+            f"Carga horária: {certificate.hours} horas  |  Emissão: {issued_date}",
+        )
+
+        canvas.setStrokeColor(HexColor("#D7D7DC"))
+        canvas.line(100, 125, width - 100, 125)
+        canvas.setFillColor(muted)
+        canvas.setFont("Helvetica", 9)
+        canvas.drawCentredString(width / 2, 98, "Código de validação")
+        canvas.setFillColor(ink)
+        canvas.setFont("Courier-Bold", 11)
+        canvas.drawCentredString(width / 2, 80, issued.validation_code)
+        canvas.setFillColor(muted)
+        canvas.setFont("Helvetica", 8)
+        canvas.drawCentredString(
+            width / 2,
+            60,
+            f"Valide em /api/v1/gamification/certificates/validate/{issued.validation_code}",
+        )
+        canvas.showPage()
+        canvas.save()
+        buffer.seek(0)
+        safe_title = "-".join(certificate.title.lower().split())
+        return buffer, f"{safe_title}.pdf"
 
     async def validate_code(self, validation_code: str) -> CertificateValidationResponse:
         row = await self._certificates.get_by_validation_code(validation_code)
@@ -380,6 +483,22 @@ async def list_my_certificates(
 ) -> SuccessResponse[list[UserCertificateResponse]]:
     certificates = await certificate_service.list_my_certificates(current_user.id)
     return success_response(request, "Certificados recuperados com sucesso.", certificates)
+
+
+@router.get("/certificates/{user_certificate_id}/pdf")
+async def download_certificate_pdf(
+    user_certificate_id: uuid.UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    certificate_service: Annotated[CertificateService, Depends(get_certificate_service)],
+) -> StreamingResponse:
+    pdf, filename = await certificate_service.render_certificate_pdf(
+        user_certificate_id=user_certificate_id, user_id=current_user.id
+    )
+    return StreamingResponse(
+        pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/certificates/validate/{validation_code}")

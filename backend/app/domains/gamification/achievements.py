@@ -1,7 +1,7 @@
 """Achievements (GAME-003).
 
 Reúne, num único arquivo, models + repository + service + schemas do catálogo de
-achievements e das concessões a usuários — mesma decisão deliberada usada em
+achievements e das concessões a usuários - mesma decisão deliberada usada em
 `badges.py` e `certificates.py` deste domínio, para minimizar sobreposição com
 `model.py`/`service.py`/`router.py`/`repository.py`/`schemas.py`, tocados em
 paralelo por outras tarefas.
@@ -9,7 +9,7 @@ paralelo por outras tarefas.
 Achievements são DIFERENTES de Badges: a concessão de um Achievement é sempre
 automática, calculada a partir de métricas reais de progresso do usuário
 (XP total, lições concluídas, badges conquistados, certificados emitidos,
-streak de dias consecutivos com atividade) — nunca manual via API. Badges,
+streak de dias consecutivos com atividade) - nunca manual via API. Badges,
 por sua vez, continuam sendo concedidos manualmente (ver docstring de
 `badges.py`) até que a documentação decida unificar os dois conceitos.
 
@@ -67,7 +67,7 @@ class Achievement(AuditedModel):
     """Uma regra de marco do catálogo de achievements.
 
     Concedido automaticamente (nunca manualmente) quando a métrica do usuário
-    atinge `threshold` — ver docstring do módulo.
+    atinge `threshold` - ver docstring do módulo.
     """
 
     __tablename__ = "achievements"
@@ -88,7 +88,7 @@ class Achievement(AuditedModel):
 
 
 class UserAchievement(AuditedModel):
-    """Concessão de um achievement a um usuário — cada par (user, achievement) é único.
+    """Concessão de um achievement a um usuário - cada par (user, achievement) é único.
 
     Nasce exclusivamente pela avaliação automática de `AchievementService.evaluate_and_grant`,
     nunca por um endpoint de concessão manual (diferença deliberada em relação a
@@ -233,7 +233,7 @@ class UserAchievementRepository:
         self._session.add(user_achievement)
         await self._session.flush()
         # `achievement` é `lazy="joined"`, mas isso só se aplica a queries feitas via
-        # `select()` — um objeto recém-criado por `add()+flush()` não tem a relação
+        # `select()` - um objeto recém-criado por `add()+flush()` não tem a relação
         # carregada. Sem este refresh explícito, acessar `user_achievement.achievement`
         # fora de um contexto já resolvido lançaria `MissingGreenlet`, porque o
         # SQLAlchemy tentaria um lazy-load síncrono implícito em código assíncrono.
@@ -245,7 +245,7 @@ class UserMetricsRepository:
     """Calcula, a partir das tabelas reais, as métricas de progresso de um usuário.
 
     Isolado do resto do repository para deixar claro que estas são leituras
-    somente-agregação, sem nenhuma regra de negócio embutida — a interpretação
+    somente-agregação, sem nenhuma regra de negócio embutida - a interpretação
     das métricas (o que cada uma significa para conceder um achievement) fica
     inteira no `AchievementService`.
     """
@@ -284,7 +284,7 @@ class UserMetricsRepository:
     async def get_activity_dates(self, user_id: UUID) -> list[date]:
         """Datas (sem hora) em que o usuário teve pelo menos um lançamento de XP.
 
-        Base para o cálculo de streak — reimplementado localmente no service,
+        Base para o cálculo de streak - reimplementado localmente no service,
         já que não existe hoje nenhuma tabela dedicada de streak no projeto.
         """
 
@@ -308,7 +308,7 @@ def _calculate_streak_days(activity_dates: list[date], *, today: date) -> int:
 
     `activity_dates` já vem ordenado de forma decrescente (mais recente
     primeiro, uma entrada por dia distinto). Sem tolerância: se o usuário não
-    tem atividade hoje, o streak é 0 mesmo que tenha estudado ontem — mesma
+    tem atividade hoje, o streak é 0 mesmo que tenha estudado ontem - mesma
     semântica de `DashboardService._calculate_streak`
     (`app/domains/dashboard/service.py`), reimplementada aqui localmente
     porque este domínio não depende do domínio `dashboard`.
@@ -401,7 +401,7 @@ class AchievementService:
 # --------------------------------------------------------------------------- #
 #
 # Registrado à parte do router principal de gamification (app/domains/gamification/
-# router.py), tocado em paralelo por outras tarefas — este router é incluído
+# router.py), tocado em paralelo por outras tarefas - este router é incluído
 # diretamente em app/api/v1/router.py com o mesmo prefixo "/gamification" para
 # expor os endpoints sob o mesmo namespace de API sem editar arquivos concorrentes.
 

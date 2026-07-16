@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   Loader2,
+  ChevronsRight,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -34,7 +35,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
   { to: "/tracks", labelKey: "nav.tracks", icon: Map },
   { to: "/admin", labelKey: "nav.admin", icon: ShieldCheck, adminOnly: true },
-  { to: "/ranking", labelKey: "nav.ranking", icon: Trophy, disabled: true },
+  { to: "/ranking", labelKey: "nav.ranking", icon: Trophy },
 ]
 
 export interface SidebarProps {
@@ -72,13 +73,16 @@ export function Sidebar({ isMobile = false, onNavigate }: SidebarProps) {
   return (
     <div
       className={cn(
-        "flex h-full w-full flex-col justify-between bg-card text-card-foreground",
+        "flex h-full w-full flex-col justify-between bg-[#030706] text-card-foreground",
         !isMobile && "border-r border-border"
       )}
     >
       <div className="flex flex-col gap-6 overflow-y-auto p-4">
-        <div className="flex items-center justify-between">
-          <span className="text-lg font-semibold text-primary">{t("app.name")}</span>
+        <div className="flex min-h-12 items-center justify-between">
+          <span className="flex items-center gap-2 text-lg font-semibold tracking-[0.18em] text-foreground">
+            <ChevronsRight className="size-6 text-primary" aria-hidden="true" />
+            {t("app.name").toUpperCase()}
+          </span>
           {isMobile && (
             <Button
               variant="ghost"
@@ -119,10 +123,10 @@ export function Sidebar({ isMobile = false, onNavigate }: SidebarProps) {
                 onClick={onNavigate}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                    "flex min-h-11 items-center gap-3 rounded-md border px-3 py-2 text-sm font-medium transition-[color,background-color,border-color]",
                     isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-foreground hover:bg-secondary"
+                      ? "border-primary/60 bg-primary/15 text-primary"
+                      : "border-transparent text-muted-foreground hover:bg-secondary hover:text-foreground"
                   )
                 }
               >

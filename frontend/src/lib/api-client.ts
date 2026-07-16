@@ -95,3 +95,20 @@ export async function apiPost<T>(path: string, payload?: unknown): Promise<T> {
   })
   return parseResponse<T>(response)
 }
+
+export async function apiPatch<T>(path: string, payload: unknown): Promise<T> {
+  const response = await requestWithRetry(path, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  })
+  return parseResponse<T>(response)
+}
+
+export async function apiDownload(path: string): Promise<Blob> {
+  const response = await requestWithRetry(path, { method: "GET" })
+  if (!response.ok) {
+    throw new Error(`Download failed with status ${response.status}`)
+  }
+  return response.blob()
+}

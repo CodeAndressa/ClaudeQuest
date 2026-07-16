@@ -13,6 +13,7 @@ import { PrivateLayout } from "@/layouts/private-layout"
 import { LoginPage } from "@/features/auth/pages/login-page"
 import { ForgotPasswordPage } from "@/features/auth/pages/forgot-password-page"
 import { ResetPasswordPage } from "@/features/auth/pages/reset-password-page"
+import { RankingPage } from "@/features/ranking/pages/ranking-page"
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route path="tracks" element={<TracksPage />} />
           <Route path="tracks/:trackId" element={<TrackDetailPage />} />
           <Route path="tracks/:trackId/lessons/:lessonId" element={<LessonPage />} />
+          <Route path="ranking" element={<RankingPage />} />
           <Route
             path="admin"
             element={

@@ -1,4 +1,4 @@
-import { apiGet } from "@/lib/api-client"
+import { apiDownload, apiGet } from "@/lib/api-client"
 import type {
   RankingSummary,
   UserAchievement,
@@ -12,6 +12,10 @@ export function fetchMyBadges(): Promise<UserBadge[]> {
 
 export function fetchMyCertificates(): Promise<UserCertificate[]> {
   return apiGet<UserCertificate[]>("/gamification/me/certificates")
+}
+
+export function downloadCertificate(path: string): Promise<Blob> {
+  return apiDownload(path.replace("/api/v1", ""))
 }
 
 export function fetchRanking(): Promise<RankingSummary> {

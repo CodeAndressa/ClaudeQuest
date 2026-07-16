@@ -179,7 +179,7 @@ describe("DashboardPage", () => {
     })
 
     expect(
-      screen.getByText(/em breve você poderá conquistar certificados por aqui/i)
+      screen.getByText(/conclua todas as missões de uma trilha para liberar o certificado/i)
     ).toBeInTheDocument()
   })
 

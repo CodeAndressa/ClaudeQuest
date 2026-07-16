@@ -24,7 +24,7 @@ export interface ForgotPasswordPayload {
   email: string
 }
 
-/** Sempre resolve com sucesso — o backend nunca revela se o e-mail existe. */
+/** Sempre resolve com sucesso - o backend nunca revela se o e-mail existe. */
 export function forgotPassword(payload: ForgotPasswordPayload): Promise<{ status: string }> {
   return apiPost<{ status: string }>("/auth/forgot-password", payload)
 }

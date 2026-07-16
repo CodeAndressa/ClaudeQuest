@@ -1,6 +1,6 @@
-# ClaudeQuest — Backend
+# Vértice - Backend
 
-API do ClaudeQuest, construída em FastAPI seguindo Clean Architecture + DDD Lite,
+API do Vértice, construída em FastAPI seguindo Clean Architecture + DDD Lite,
 organizada por domínio (ver `docs/` na raiz do repositório para a documentação completa).
 
 ## Setup local

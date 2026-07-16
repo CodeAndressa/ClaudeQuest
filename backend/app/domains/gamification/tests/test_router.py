@@ -125,10 +125,10 @@ class TestGrantXp:
         # de RequestValidationError em app/middlewares/error_handler.py chama exc.errors() e
         # serializa o resultado em JSON. No Pydantic v2, quando o erro vem de um
         # @model_validator que levanta ValueError, exc.errors() inclui o próprio objeto
-        # ValueError em ctx["error"] — que não é JSON-serializável. O
+        # ValueError em ctx["error"] - que não é JSON-serializável. O
         # TypeError resultante escapa de dentro do próprio handler de erro (a exceção
         # acontece na serialização da resposta 422, não numa rota), então nem chega a virar
-        # uma resposta 500 traceada — propaga como falha de transporte. Isso afeta qualquer
+        # uma resposta 500 traceada - propaga como falha de transporte. Isso afeta qualquer
         # domínio que use @model_validator levantando ValueError, não é específico de
         # gamification. Reportado como pendência de infraestrutura no relatório final desta
         # tarefa; este teste apenas confirma que a REQUISIÇÃO NUNCA CHEGA AO SERVICE (ou

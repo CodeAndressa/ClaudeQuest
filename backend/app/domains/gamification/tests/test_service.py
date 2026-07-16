@@ -122,7 +122,7 @@ class TestGrantXpDefenseInDepth:
         # O @model_validator de GrantXpRequest já impede, na borda da API, um payload sem
         # amount/reason e sem difficulty. Este teste simula um chamador direto do Service
         # (ex.: a futura feature de Missões) que construiu o schema sem passar pela
-        # validação normal — via model_construct, que pula @model_validator — para provar
+        # validação normal - via model_construct, que pula @model_validator - para provar
         # que o Service também não confia cegamente no payload.
         malformed_payload = GrantXpRequest.model_construct(
             amount=None,

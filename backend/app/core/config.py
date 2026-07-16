@@ -14,7 +14,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    app_name: str = "ClaudeQuest"
+    app_name: str = "Vértice"
     environment: Literal["development", "staging", "production", "test"] = "development"
     port: int = 8002
     app_url: str = "http://localhost:8002"

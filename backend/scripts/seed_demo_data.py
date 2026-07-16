@@ -1,7 +1,7 @@
 """
 Cria a organização demo e o usuário administrador inicial, conforme previsto em
 05 - Database/Database Specification.md.md ("Seeds"). Necessário porque não existe
-tela de cadastro — usuários são criados pelo Admin (ADMIN-001, ainda não implementado).
+tela de cadastro - usuários são criados pelo Admin (ADMIN-001, ainda não implementado).
 
 Uso: uv run python scripts/seed_demo_data.py
 """
@@ -26,7 +26,7 @@ async def seed(session: AsyncSession) -> None:
         select(Organization).where(Organization.slug == DEMO_ORG_SLUG)
     )
     if existing_org is not None:
-        print("Organização demo já existe — nada a fazer.")
+        print("Organização demo já existe - nada a fazer.")
         return
 
     organization = Organization(name="ClaudeQuest Demo", slug=DEMO_ORG_SLUG, plan="internal")

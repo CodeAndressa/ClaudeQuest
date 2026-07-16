@@ -1,5 +1,9 @@
 ﻿import { apiGet, apiPost } from "@/lib/api-client"
-import type { CompleteLessonResponse, TrackDetail, TrackSummary } from "@/features/learning/types/learning"
+import type {
+  CompleteLessonResponse,
+  TrackDetail,
+  TrackSummary,
+} from "@/features/learning/types/learning"
 
 export function fetchTracks(): Promise<TrackSummary[]> {
   return apiGet<TrackSummary[]>("/learning/tracks")

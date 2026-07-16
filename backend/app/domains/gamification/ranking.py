@@ -11,7 +11,7 @@ seção "Rankings" / "Pontuação":
 Decisão de design (sujeita a revisão quando houver mais dados disponíveis):
 no momento desta implementação **não existe** sistema de progresso que
 produza dados reais de "Projetos", "Missões concluídas" nem "Laboratórios"
-(não há tabela de progresso do aluno — o próprio Dashboard, ao implementar o
+(não há tabela de progresso do aluno - o próprio Dashboard, ao implementar o
 ranking simplificado em GAME-001/dashboard, documentou essa mesma lacuna).
 Combinamos apenas o que existe de verdade no banco hoje:
 
@@ -24,14 +24,14 @@ Combinamos apenas o que existe de verdade no banco hoje:
     GAME-006).
 
 Fórmula escolhida (pesos arbitrários, não especificados pelo documento de
-produto — precisam de validação de negócio quando houver dados reais de
+produto - precisam de validação de negócio quando houver dados reais de
 Projetos e Missões para calibrar o peso relativo de cada fonte):
 
     score = total_xp + (badges_count * 100) + (certificates_count * 500)
 
 Racional dos pesos: um certificado representa a conclusão de uma trilha
 inteira (documentação de XP já trata "Certificação" como o evento de maior
-valor isolado, 2000 XP) — por isso pesa mais que um badge individual (marco
+valor isolado, 2000 XP) - por isso pesa mais que um badge individual (marco
 pontual, ex.: "Primeira Missão"). Os valores 100/500 foram escolhidos para
 que badges e certificados movam o ranking de forma perceptível sem dominar
 por completo um usuário com XP genuinamente alto; ambos devem ser revistos
@@ -39,8 +39,8 @@ assim que "Projetos" e "Missões concluídas" tiverem uma fonte de dados real
 a incorporar na fórmula.
 
 Escopo desta entrega: apenas o ranking **Global** (todos os usuários, sem
-recorte de tempo). Os demais escopos listados na documentação — Empresa,
-Área, Equipe, Turma, Semanal, Mensal, Anual, Histórico — ficam pendentes:
+recorte de tempo). Os demais escopos listados na documentação - Empresa,
+Área, Equipe, Turma, Semanal, Mensal, Anual, Histórico - ficam pendentes:
 Empresa/Área/Equipe/Turma dependem de uma modelagem de Organization/Team
 mais rica do que a que existe hoje (hoje só há `organization_id` em
 `User`, sem hierarquia de área/equipe); Semanal/Mensal/Anual dependem de um
@@ -77,13 +77,13 @@ CERTIFICATE_WEIGHT = 500
 def calculate_score(*, total_xp: int, badges_count: int, certificates_count: int) -> int:
     """Calcula o score de ranking de um usuário a partir do que hoje é mensurável.
 
-    Função pura, sem I/O — testável isoladamente e reutilizável por qualquer
+    Função pura, sem I/O - testável isoladamente e reutilizável por qualquer
     chamador (ex.: um futuro job de recálculo em lote), seguindo o mesmo
     padrão de `app.domains.gamification.xp_rules.calculate_xp`.
 
     Não valida limites superiores (XP, badges e certificados já nascem
     não-negativos em suas respectivas fontes); valores negativos aqui
-    indicariam um bug em quem chama, não um caso de negócio válido — por
+    indicariam um bug em quem chama, não um caso de negócio válido - por
     isso a função não lança exceção, apenas soma o que recebe.
     """
 
@@ -113,7 +113,7 @@ class RankingRepository:
     """Agrega dados de múltiplos domínios (XP, badges, certificados) por usuário.
 
     Assim como `app.domains.dashboard.repository.DashboardRepository`, esta
-    classe só lê tabelas de outros domínios, nunca escreve nelas — a leitura
+    classe só lê tabelas de outros domínios, nunca escreve nelas - a leitura
     combinada não é responsabilidade de nenhum domínio individual.
 
     Os imports de `UserBadge` (`app.domains.gamification.badges`) e
@@ -216,7 +216,7 @@ class RankingResponse(BaseModel):
 
     `current_user` é `None` apenas no caso defensivo em que o usuário
     autenticado não aparece entre as entradas agregadas (ex.: deletado entre
-    a autenticação e a consulta) — não esperado em uso normal, já que
+    a autenticação e a consulta) - não esperado em uso normal, já que
     `get_current_user` já garante um usuário ativo.
     """
 
@@ -234,7 +234,7 @@ def _rank_entries(entries: list[RankingEntry]) -> list[RankingUserEntry]:
     """Ordena por score desc, com desempate estável por `user_id` (ordem crescente).
 
     O desempate por `user_id` (não pela ordem de chegada do banco) garante um
-    resultado determinístico e reprodutível entre execuções — mesmo critério
+    resultado determinístico e reprodutível entre execuções - mesmo critério
     já usado em `app.domains.dashboard.repository.get_ranking_position`
     (`RANK() OVER (ORDER BY total_xp DESC, user_id ASC)`), aqui replicado em
     memória porque o score combina fontes de domínios diferentes que só se

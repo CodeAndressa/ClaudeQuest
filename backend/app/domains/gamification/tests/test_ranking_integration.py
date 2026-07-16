@@ -1,5 +1,5 @@
 """Testes de integração de RankingRepository e do endpoint /gamification/ranking
-contra um banco real — os testes em test_ranking.py usam um repositório fake e
+contra um banco real - os testes em test_ranking.py usam um repositório fake e
 nunca exercitam a query SQL de verdade (joins, subqueries, coalesce)."""
 
 from datetime import UTC, datetime
